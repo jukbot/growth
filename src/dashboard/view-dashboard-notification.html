@@ -1,0 +1,99 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../view-index.html">
+<link rel="import" href="../shared-styles.html">
+
+<dom-module id="view-dashboard-notification">
+  <template>
+    <style include="shared-styles">
+       :host {
+        display: block;
+        --app-grid-item-height: 50%;
+      }
+      
+       @media (min-width: 360px) and (max-width: 768px) {
+         :host {
+          --app-grid-columns: 1;
+        }
+      }
+
+      @media (min-width: 769px) and (max-width: 1024px) {
+         :host {
+          --app-grid-columns: 1;
+        }
+      }
+
+      @media (min-width: 1025px) and (max-width: 1200px) {
+         :host {
+          --app-grid-columns: 1;
+        }
+      }
+       @media (min-width: 1201px) and (max-width: 2560px) {
+         :host {
+          --app-grid-columns: 1;
+        }
+      }
+      .clear-noti-btn {
+        margin: 10px;
+        float: right;
+      }
+      .datetime {
+        color: #555555;
+      }
+    </style>
+    <firebase-query app-name="growth" id="notificationQuery" path="/notification" order-by-child="timestamp" data="{{notificationItems}}"></firebase-query>
+  <ul class="app-grid">
+    <li>
+      <paper-button class="chilli clear-noti-btn" raised on-tap="clearNotification">Clear Notification</paper-button>
+      <paper-toast id="toast" always-on-top horizontal-align="right" text="Clear all notifications"></paper-toast>
+  </li>
+ <template is="dom-repeat" items="{{notificationItems}}" as="i">
+        <li>
+          <div class="card">
+           <h2><iron-icon class="icon" icon="vaadin:[[i.type]]"></iron-icon> [[i.detail]]</h2>
+            <p class="datetime">Created: [[timestampToDate(i.timestamp)]]</p>
+            <iron-icon class="icon" icon="vaadin:trash" notification="[[i]]" on-tap="removeNotification"></iron-icon>
+          </div>
+        </li>
+        </template>
+      </ul>
+  
+  </template>
+  <script>
+    Polymer({
+      is: 'view-dashboard-notification',
+      openToast: function() {
+        this.$.toast.open(); 
+       },
+      removeNotification(e) {
+        let key = e.currentTarget.notification.$key;
+        this.$.notificationQuery.ref.child(key).remove();
+      },
+      clearNotification: function() {
+        this.$.notificationQuery.ref.remove();
+      },
+      timestampToDate: function (timestamp) {
+          let today = new Date(timestamp*1000);
+          let dd = today.getDate();
+          let mm = today.getMonth() + 1; //January is 0!
+          let yyyy = today.getFullYear();
+          let h = today.getHours();
+          let m = today.getMinutes();
+          let s = today.getSeconds();
+          if (dd < 10) {
+           dd = '0' + dd
+          }
+          if (mm < 10) {
+           mm = '0' + mm
+         }
+         if (m < 10) {
+           m = '0' + m
+         }
+         if (s < 10) {
+           s = '0' + s
+         }
+         let deliveryDate = dd + '/' + mm + '/' + yyyy + " " + h + ":" + m + ":" + s;
+         return deliveryDate;
+      }
+    });
+  </script>
+</dom-module>

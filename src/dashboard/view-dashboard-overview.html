@@ -1,0 +1,192 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../view-index.html">
+<link rel="import" href="../shared-styles.html">
+<dom-module id="view-dashboard-overview">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: block;
+        --app-grid-item-height: 50%;
+      }
+      
+       @media (min-width: 360px) and (max-width: 768px) {
+         :host {
+          --app-grid-columns: 1;
+        }
+      }
+
+      @media (min-width: 769px) and (max-width: 1024px) {
+         :host {
+          --app-grid-columns: 3;
+        }
+      }
+
+      @media (min-width: 1025px) and (max-width: 1200px) {
+         :host {
+          --app-grid-columns: 3;
+        }
+      }
+       @media (min-width: 1201px) and (max-width: 2560px) {
+         :host {
+          --app-grid-columns: 3;
+        }
+      }
+      .data-header {
+        font-size: 1.75rem;
+        text-align: center;
+      }
+      .data {
+        font-size: 3.5rem;
+        text-align: center;
+        margin-top: 20px;
+      }
+      .emotion {
+        font-size: 4rem;
+      }
+      .soil_emotion {
+        width: 15%;
+        text-align: center;
+      }
+    </style>
+<firebase-document app-name="growth" id="humidQuery" path="/humid" data="{{humid}}"></firebase-document>
+<firebase-document app-name="growth" id="tempQuery" path="/temp" data="{{temp}}"></firebase-document>
+<firebase-document app-name="growth" id="soilQuery" path="/soil" data="{{soil}}"></firebase-document>
+<firebase-document app-name="growth" id="soilStatusQuery" path="/soil_status" data="{{soil_status}}"></firebase-document>
+<firebase-document app-name="growth" id="soilEmotionQuery" path="/soil_emotion" data="{{soil_emotion}}"></firebase-document>
+<firebase-document app-name="growth" id="farmQuery" path="/farm/-KibMoVqbif9LUveY-Fr" order-by-child="name" data="{{farmData}}"></firebase-document>
+   
+    <ul class="app-grid">
+      <li>
+        <div class="card">
+          <h1 class="data-header">Temperature</h1>
+         <h1 class="data">[[temp]] &#8451;</h1>
+        </div>
+      </li>
+      <li>
+        <div class="card">
+          <h1 class="data-header">Humidity</h1>
+          <h1 class="data">[[humid]] %</h1>
+        </div>
+      </li>
+      <li>
+        <div class="card">
+          <h1 class="data-header">Soil Moisture</h1>
+          <h1 class="data">[[soil]] %</h1>
+          </div>
+      </li>
+    </ul>
+      <div class="card">
+        <h1 class="data-header">Soil Health Status</h1>
+        <div class="data">
+        <img class="soil_emotion" alt="soil_status" src="{{get_emotion(soil_emotion)}}">
+        <h1 class="emotion">[[soil_status]]</h1>
+        </div>
+        </div>
+ <ul class="app-grid">
+      <li>
+        <div class="card">
+          <h1 class="data-header">Crop Evapotranspiration</h1>
+         <h1 class="data">[[getKC(farmData.plant_age,farmData.eto,farmData.kc,farmData.timestamp)]] mm.</h1>
+        </div>
+      </li>
+      <li>
+        <div class="card">
+          <h1 class="data-header">Today Watering</h1>
+          <h1 class="data">[[calcurrentET(soil,farmData.plant_age,farmData.eto,farmData.kc,farmData.timestamp)]] mm.</h1>
+        </div>
+      </li>
+      <li>
+        <div class="card">
+          <h1 class="data-header">Next Watering</h1>
+          <h1 class="data">[[farmData.water]]</h1>
+          </div>
+      </li>
+    </ul>
+  </template>
+  <script>
+    Polymer({
+      is: 'view-dashboard-overview',
+      properties: {
+        humid: {
+          type: Object
+        },
+        temp: {
+          type: Object
+        },
+        soil: {
+          type: Object
+        },
+        soil_status: {
+          type: String
+        },
+        soil_emotion: {
+          type: String
+        },
+        water_time: {
+          type: String
+        },
+        weather_datetime: {
+          type: String,
+          value: function() {
+              return "";
+          }
+        },
+        farmData: {
+          type: Object
+        }
+      },
+      get_emotion: function(e) {
+        if(e != null) {
+          return "../../images/status/" + e + ".svg";
+        } 
+        else {
+          return "../../images/status/normal.svg";
+        }
+      },
+      updatePlantAge: function () {
+              let old_age = this.get('farmData.plant_age');
+              let old_timestamp = this.get('farmData.timestamp');
+              
+        if((Math.round(new Date().getTime()/1000.0) - this.timestamp) > 604800) {
+              let week = Math.ceil((Math.round(new Date().getTime()/1000.0) - this.timestamp)/604800);
+              this.set('farmData.plant_age', week);
+        }
+      },
+      calcurrentET: function(s,age,eto,kc,timestamp,key) {
+        let week = age;
+        let d = new Date();
+        let m = d.getMonth()+1; // Jan start from 0
+        let eto_arr = eto.split(",");
+        let kc_arr = kc.split(",");
+        let current_eto = eto_arr[m];
+        let current_kc = kc_arr[week];
+        let et = (current_eto*current_kc).toFixed(2);
+
+        if (typeof Object.keys(this.soil) !== 'undefined') {
+          if(this.soil > 60) {
+            return 0;
+          } else if(this.soil >= 50 && this.soil <= 60) {
+             return (0.5*et).toFixed(2);
+          } else if(this.soil >= 40 && this.soil < 50) {
+             return (0.75*et).toFixed(2);
+          } else if (this.soil < 40) {
+             return et;
+          }
+        }
+      },
+
+      getKC(age,eto,kc,timestamp,key) {
+        let week = age;
+        let d = new Date();
+        let m = d.getMonth()+1; // Jan start from 0
+        let eto_arr = eto.split(",");
+        let kc_arr = kc.split(",");
+        let current_eto = eto_arr[m];
+        let current_kc = kc_arr[week];
+        let et = (current_eto*current_kc).toFixed(2);
+        return et;
+      }
+
+    });
+  </script>
+</dom-module>

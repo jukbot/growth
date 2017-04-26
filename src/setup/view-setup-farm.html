@@ -1,0 +1,307 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../view-index.html">
+<link rel="import" href="../shared-styles.html">
+<dom-module id="view-setup-farm">
+  <template>
+    <style include="shared-styles">
+       :host {
+        display: block;
+        --app-grid-item-height: 50%;
+      }
+      
+       @media (min-width: 360px) and (max-width: 768px) {
+         :host {
+          --app-grid-columns: 1;
+        }
+      }
+
+      @media (min-width: 769px) and (max-width: 1024px) {
+         :host {
+          --app-grid-columns: 1;
+        }
+      }
+
+      @media (min-width: 1025px) and (max-width: 1200px) {
+         :host {
+          --app-grid-columns: 1;
+        }
+      }
+       @media (min-width: 1201px) and (max-width: 2560px) {
+         :host {
+          --app-grid-columns: 1;
+        }
+      }
+
+      .farm-dialog {
+        width: 40%;
+        padding: 10px;
+        margin-top: 180px;
+      }
+     .farm { min-height: 420px; height: auto; }
+     .farm p {
+        margin: 12px 0;
+      }
+     .farm h1 { text-align: center; }
+     .farm-info-group {
+       margin-bottom: auto;
+     }
+     .button-group paper-button {
+       width: 49%;
+     }
+     
+    </style>
+    <firebase-query app-name="growth" id="locationQuery" path="/location/th" order-by-child="name" data="{{locationData}}"></firebase-query>
+    <firebase-query app-name="growth" id="districtQuery" path="/location/th/{{province.$key}}/district" order-by-child="name" data="{{districtData}}"></firebase-query>
+    <firebase-query app-name="growth" id="plantQuery" path="/plant" order-by-child="name" data="{{plantData}}"></firebase-query>
+    <firebase-query app-name="growth" id="districtQuery" path="/plant/{{plant.$key}}/kc" data="{{weekData}}"></firebase-query>
+    <firebase-query app-name="growth" id="deviceQuery" path="/device" order-by-child="name" data="{{deviceData}}"></firebase-query>
+    <firebase-query app-name="growth" id="farmQuery" path="/farm" order-by-child="name"  data="{{farmData}}"></firebase-query>
+    <firebase-query app-name="growth" id="waterQuery" path="/water" data="{{waterData}}"></firebase-query>
+    <firebase-document app-name="growth" id="appNotification" path="/metadata/appNotification" data="{{notification}}"></firebase-document>
+    <firebase-document app-name="growth" id="appLanguage" path="/metadata/appLanguage" data="{{language}}"></firebase-document>
+    <app-localstorage-document key="lang" data="{{language}}"></app-localstorage-document>
+    <app-indexeddb-mirror key="farmDataCache" data="{{farmData}}" persisted-data="{{persistedFarmData}}"></app-indexeddb-mirror>
+    <ul class="app-grid">
+      <li>
+        <div class="stitched">
+          <paper-button raised on-tap="toggleDialog" class="big-btn fancy">ADD FARM</paper-button>
+          <paper-dialog id="createFarmDialog" class="farm-dialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation" always-on-top
+            no-cancel-on-outside-click auto-fit-on-attach>
+            <h1>ADD FARM</h1>
+            <paper-input name="farm-name" id="farmName" label="Farm Name" required always-float-label></paper-input>
+            <paper-input label="Area square meter" name="area" id="farmArea" type="number" min="0" max="1000" step="1" allowed-pattern="[0-9]"  equired always-float-label auto-validate></paper-input>
+            <vaadin-combo-box label="Province" name="province" items="[[locationData]]" id="locationSelector" item-label-path="name" item-value-path="name" selected-item='{{province}}' required always-float-label></vaadin-combo-box>
+            <vaadin-combo-box label="District" name="district" items="[[districtData]]" id="districtSelector" disabled="true" item-label-path="name" item-value-path="name" selected-item='{{district}}' required always-float-label></vaadin-combo-box>
+            <vaadin-combo-box label="Plant" name="plant" items="[[plantData]]" id="plantSelector" item-label-path="name" item-value-path="name" selected-item='{{plant}}' required always-float-label></vaadin-combo-box>
+            <vaadin-combo-box label="Age (weeks)" name="age" items="[[weekData]]" id="ageSelector" disabled="true" item-label-path="$key" item-value-path="$key" selected-item='{{age}}' required always-float-label></vaadin-combo-box>                      
+            <vaadin-combo-box label="Device Sensor" name="sensor" items="[[deviceData]]" id="sensorSelector" item-label-path="name" item-value-path="name" selected-item='{{sensor}}' required always-float-label ></vaadin-combo-box>
+            <paper-input name="water-time" id="waterTime" label="Water Time (xx:xx)" required always-float-label></paper-input>           
+            <input type="text" id="sensorType" value="[[sensor.type]]" name="sensor-type" hidden="true"/>
+            <input type="text" id="plantKC" value="[[plant.kc]]" name="plant-kc" hidden="true"/>
+            <input type="text" id="locationETO" value="[[district.eto.2011]]" name="location-eto" hidden="true"/>
+            <div class="buttons">
+                <paper-button on-tap="dismissAddMachine" dialog-dismiss>{{localize('dismiss')}}</paper-button>
+                <paper-button on-tap="addFarm" dialog-confirm autofocus>{{localize('create')}}</paper-button>
+              </div>
+            </paper-dialog>
+        </div>
+      </li>
+      <template is="dom-repeat" items="{{persistedFarmData}}" as="farmItem">
+        <li>  
+            <div class="card farm">
+            <div class="info-group">
+            <h1 class="card-title">[[farmItem.name]]</h1>
+            <p>Farm name: [[farmItem.name]]</p>
+            <p>Farm area: [[farmItem.area]] sq.m.</p>
+            <p>Sensor name: [[farmItem.sensor_name]]</p>
+            <p>Sensor type: [[farmItem.sensor_type]]</p>
+            <p>Watering time: [[farmItem.water]]</p>
+            <p>Plant type: [[farmItem.plant_type]] Weeks</p>
+            <p>Plant age: [[farmItem.plant_age]]</p>
+            <p>Watering amount: [[getKC(farmItem.plant_age,farmItem.eto,farmItem.kc,farmItem.timestamp)]] mm./day</p>
+            </div>
+            <div class="button-group">
+            <paper-button raised class="fancy" farm="[[farmItem]]" on-tap="editFarm">{{localize('edit')}}</paper-button>
+            <paper-button raised class="chilli" farm="[[farmItem]]" on-tap="removeFarm">{{localize('remove')}}</paper-button>
+            </div>
+            <paper-dialog id="edit_[[farmItem.$key]]" class="farm-dialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation" always-on-top no-cancel-on-outside-click>
+            <paper-input name="farm-name" id="farmName_[[farmItem.$key]]" label="Farm Name" required always-float-label></paper-input>
+            <paper-input label="Area square meter" name="area" id="farmArea_[[farmItem.$key]]" type="number" min="0" max="1000" step="1" allowed-pattern="[0-9]"  equired always-float-label auto-validate></paper-input>
+            <vaadin-combo-box label="Province" name="province" items="[[locationData]]" id="locationSelector_[[farmItem.$key]]" item-label-path="name" item-value-path="name" selected-item='{{province}}' required always-float-label></vaadin-combo-box>
+            <vaadin-combo-box label="District" name="district" items="[[districtData]]" id="districtSelector_[[farmItem.$key]]" disabled="true" item-label-path="name" item-value-path="name" selected-item='{{district}}' required always-float-label></vaadin-combo-box>
+            <vaadin-combo-box label="Plant" name="plant" items="[[plantData]]" id="plantSelector_[[farmItem.$key]]" item-label-path="name" item-value-path="name" selected-item='{{plant}}' required always-float-label></vaadin-combo-box>
+            <vaadin-combo-box label="Age (weeks)" name="age" items="[[weekData]]" id="ageSelector_[[farmItem.$key]]" disabled="true" item-label-path="$key" item-value-path="$key" selected-item='{{age}}' required always-float-label></vaadin-combo-box>                      
+            <vaadin-combo-box label="Device Sensor" name="sensor" items="[[deviceData]]" id="sensorSelector_[[farmItem.$key]]" item-label-path="name" item-value-path="name" selected-item='{{sensor}}' required always-float-label ></vaadin-combo-box>
+            <paper-input name="water-time" id="waterTime_[[farmItem.$key]]" label="Water Time (xx:xx)" required always-float-label></paper-input>           
+            <input type="text" id="sensorType_[[farmItem.$key]]" value="[[sensor.type]]" name="sensor-type" hidden="true"/>
+            <input type="text" id="plantKC_[[farmItem.$key]]" value="[[plant.kc]]" name="plant-kc" hidden="true"/>
+            <input type="text" id="locationETO_[[farmItem.$key]]" value="[[district.eto.2011]]" name="location-eto" hidden="true"/>
+            <div class="buttons">
+                <paper-button on-tap="dismissAddMachine" dialog-dismiss>{{localize('dismiss')}}</paper-button>
+                <paper-button on-tap="saveFarm" farm="[[farmItem]]" dialog-confirm autofocus>{{localize('save')}}</paper-button>
+              </div>
+            </paper-dialog>
+          </div>
+        </li>
+      </template>
+    </ul>
+  <paper-toast id="toastAddFarm" always-on-top horizontal-align="right" text="Added farm successful"></paper-toast>
+  <paper-toast id="toastSaveFarm" always-on-top horizontal-align="right" text="Saved farm successful"></paper-toast>
+  <paper-toast id="toastDeleteFarm" always-on-top horizontal-align="right" text="Deleted farm successful"></paper-toast>
+  </template>
+  <script>
+    Polymer({
+      is: 'view-setup-farm',
+      properties: {
+        language: {
+          type: Object,
+          value: function () {
+            if(localStorage.getItem("lang") != null) {
+              return localStorage.getItem("lang");
+            } 
+            else if(localStorage.getItem("lang") == null) {
+              return "en";
+            } 
+            else {
+              return this.language;
+            }
+          }
+        },
+        farmData: {
+          type: Object
+        },
+        notification: {
+          type: Object
+        },
+        locationData: {
+          type: Object
+        },
+        districtData: {
+          type: Object
+        },
+        deviceData: {
+          type: Object
+        },
+        plantData: {
+          type: Object
+        },
+        weekData: {
+          type: Object
+        },
+        waterData: {
+          type: Object
+        }
+      },
+      behaviors: [
+        Polymer.AppLocalizeBehavior
+      ],
+
+      attached: function() {
+         this.loadResources(this.resolveUrl('../../data/locales.json'));
+      },
+
+      ready: function() {
+        this.async(function() {
+         let provincePicker = this.$.locationSelector;
+         let districtPicker = this.$.districtSelector;
+         let plantPicker = this.$.plantSelector;
+         let agePicker = this.$.ageSelector;
+
+        provincePicker.addEventListener('value-changed', function(e) {
+          let province_list = provincePicker.value;    
+          if(province_list != null && districtPicker.items != null) {
+                 districtPicker.disabled = false;
+              }
+          });
+
+       plantPicker.addEventListener('value-changed', function(e) {
+          let plant_list = plantPicker.value;
+          if(plant_list != null && agePicker.items != null) {
+                agePicker.disabled = false;
+            }        
+          });
+
+           });
+      },
+      toggleDialog() {
+        this.$.createFarmDialog.open();
+      },
+
+      addFarm() {
+        let fname = this.$.farmName.value;
+        let farea = this.$.farmArea.value;
+        let sname = this.$.sensorSelector.value;
+        let plant = this.$.plantSelector.value;
+        let age = this.$.ageSelector.value;
+        let location = this.$.locationSelector.value;
+        let district = this.$.districtSelector.value;
+        let water_time = this.$.waterTime.value;
+        let stype = this.$.sensorType.value;
+        let kc_value = this.$.plantKC.value;
+        let eto_value = this.$.locationETO.value;
+        let kc = kc_value.substr(1);
+        let eto = eto_value.substr(1);
+        
+if(fname != "" && farea != "" && sname != "" && plant != "" &&  age != "" && location !="" && district !="") {
+
+       this.$.farmQuery.ref.push({
+          name : fname,
+          area : farea,
+          sensor_name : sname,
+          sensor_type : stype,
+          plant_type : plant,
+          plant_age : age,
+          location : location,
+          district : district,
+          water : water_time,
+          kc : kc,
+          eto : eto,
+          et : 0,
+          timestamp : Math.round(new Date().getTime()/1000.0) 
+        });
+      
+        this.clearField();
+          if(this.notification) {
+           this.$.toastAddFarm.open(); 
+         }
+        } else {
+           alert("Input field cannot be empty.")
+        }
+      },
+
+      editFarm(e) {
+        this.$$('#edit_'+ e.currentTarget.farm.$key).open();  
+      },
+
+      removeFarm(e) {
+        let key = e.currentTarget.farm.$key;
+        this.$.farmQuery.ref.child(key).remove();
+        this.$.toastDeleteFarm.open(); 
+      },
+
+      saveEditFarm(e) {
+        console.log(e.model.farmItem.name);
+        let key = e.currentTarget.farm.$key;
+        this.$.farmQuery.ref.child(key).remove();
+        this.$.toastSaveFarm.open(); 
+      },
+
+      dismissEditFarm(e) {
+        this.clearField();
+        this.$.createFarmDialog.cancel();
+      },
+
+      dismissAddFarm() {
+        this.clearField();
+        this.$.createFarmDialog.cancel();
+      },
+
+      clearField() {
+        this.$.farmName.value = "";
+        this.$.farmArea.value = 0;
+        this.$.sensorSelector.value = null;
+        this.$.plantSelector.value = null;
+        this.$.ageSelector.value = null;
+        this.$.locationSelector.value = null;
+        this.$.districtSelector.value = null;
+        this.$.waterTime.value = "";
+        this.$.sensorType.value = null;
+        this.$.plantKC.value = null;
+        this.$.locationETO.value = null;
+      },
+
+      getKC(age,eto,kc,timestamp,key) {
+        let week = age;
+        let d = new Date();
+        let m = d.getMonth()+1; // Jan start from 0
+        let eto_arr = eto.split(",");
+        let kc_arr = kc.split(",");
+        let current_eto = eto_arr[m];
+        let current_kc = kc_arr[week];
+        let et = (current_eto*current_kc).toFixed(2);
+      
+        return et;
+      }
+    });
+  </script>
+</dom-module>

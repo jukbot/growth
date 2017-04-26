@@ -1,0 +1,84 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="view-index.html">
+<link rel="import" href="shared-styles.html">
+<link rel="import" href="setup/view-setup-settings.html">
+<dom-module id="view-settings">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: block;
+        --app-grid-item-height: 50%;
+      }
+      
+       @media (min-width: 360px) and (max-width: 768px) {
+         :host {
+          --app-grid-columns: 1;
+        }
+      }
+
+      @media (min-width: 769px) and (max-width: 1024px) {
+         :host {
+          --app-grid-columns: 2;
+        }
+      }
+
+      @media (min-width: 1025px) and (max-width: 1200px) {
+         :host {
+          --app-grid-columns: 2;
+        }
+      }
+       @media (min-width: 1201px) and (max-width: 2560px) {
+         :host {
+          --app-grid-columns: 2;
+        }
+      }
+      .save-btn {
+        margin-top: 10px;
+      }
+    </style>
+
+     <app-header-layout fullbleed has-scrolling-region class="subheader-layout">
+        <app-header fixed shadow>
+          <app-toolbar sticky class="tabs-bar">
+            <paper-tabs selected="{{tabs}}" attr-for-selected="id" sticky bottom-item autoselect role="navigation" no-bar noink>
+              <template is="dom-repeat" items="{{submenus}}">
+                <paper-tab id="{{item.view}}"><paper-icon-button icon="{{item.icon}}" alt="{{item.title}}"></paper-icon-button><span class="tab-title">{{item.title}}</span></paper-tab>
+              </template>
+            </paper-tabs>
+          </app-toolbar>
+        </app-header>
+          <iron-pages selected="[[tabs]]" attr-for-selected="name" role="main">
+          <view-setup-settings name="settings"></view-setup-settings>
+         </iron-pages> 
+        </app-header-layout>  
+  </template>
+  <script>
+    Polymer({
+      is: 'view-settings',
+      properties: {
+        tabs: {
+          type: String,
+          reflectToAttribute: true,
+          observer: '_tabsChanged',
+          value: 'settings'
+        },
+        submenus: {
+          type: Array,
+          value: function () {
+            return [{
+                'title': 'SETTINGS',
+                'view': 'settings',
+                'icon': 'vaadin:cog'
+              },
+            ];
+          }
+        }
+      },
+
+      _tabsChanged: function (tabs) {
+        let resolvedTabsUrl = this.resolveUrl('setup/view-setup-' + tabs + '.html');
+        this.importHref(resolvedTabsUrl, null, null, true);
+      }  
+    });
+  </script>
+</dom-module>

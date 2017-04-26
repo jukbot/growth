@@ -1,0 +1,432 @@
+<html><head><link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../view-index.html">
+<link rel="import" href="../shared-styles.html">
+</head><body><dom-module id="view-plan-order">
+ <template>
+    <style include="shared-styles">
+      :host {
+        display: block;
+        --app-grid-item-height: 50%;
+      }
+      
+       @media (min-width: 360px) and (max-width: 768px) {
+         :host {
+          --app-grid-columns: 1;
+        }
+      }
+
+      @media (min-width: 769px) and (max-width: 1024px) {
+         :host {
+          --app-grid-columns: 2;
+        }
+      }
+
+      @media (min-width: 1025px) and (max-width: 1200px) {
+         :host {
+          --app-grid-columns: 2;
+        }
+      }
+       @media (min-width: 1201px) and (max-width: 2560px) {
+         :host {
+          --app-grid-columns: 2;
+        }
+      }
+
+      #job-scheduling-table data-table-row {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      opacity: 1;
+      cursor: pointer;
+      border-bottom: 1px solid #e3e3e3;
+      }
+
+       #job-scheduling-table .index {
+       color: red;
+       margin-left: 10px;
+       }
+       
+       paper-dropdown-menu {
+         width: 100%;
+       }
+
+     .button-group {
+       margin-top: 16px;
+     }
+
+     .button-group paper-button {
+       display: inline-flex;
+       width: 49.5%;
+       align-items: center; 
+       justify-content: center; 
+     }
+
+      .order-info p {
+        margin: 10px 0;
+      }
+
+     .item-box {
+      height: 10em;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center
+     }
+
+     .item {
+       margin:0;
+       width: 50%;
+       height: 50%;
+     }
+      #priorityType {
+        color: deeppink;      
+      }
+    </style>
+    <firebase-query app-name="growth" id="locationQuery" path="/th" order-by-child="name" data="{{orderQuery}}"></firebase-query>
+    <firebase-query app-name="growth" id="productQuery" path="/product" order-by-child="name" data="{{productItems}}"></firebase-query>
+    <firebase-query app-name="growth" id="machineQuery" path="/machine" order-by-child="name" data="{{machineItems}}"></firebase-query>
+    <firebase-document app-name="growth" id="factoryStandard" path="/factory/standard" data="{{factoryStandard}}"></firebase-document>
+    <firebase-document app-name="growth" id="factoryPerformance" path="/factory/performance" data="{{factoryPerformance}}"></firebase-document>
+    <firebase-document app-name="growth" id="factoryOperation" path="/factory/operation" data="{{factoryOperation}}"></firebase-document>
+    <ul class="app-grid">
+      <li>
+        <div class="card">
+          <h1>Create Order</h1>
+              <paper-input label="Order Number" name="order-no" id="orderNumber" type="number" min="0" step="1" allowed-pattern="[0-9]" required="" always-float-label="" auto-validate=""></paper-input>
+              <paper-input label="Customer Name" name="order-name" type="text" id="customerName" required="" always-float-label="" auto-validate=""></paper-input>
+              <paper-input label="Amount" name="order-quantity" value="{{amount}}" type="number" min="10" max="1000" step="1" allowed-pattern="[0-9]" id="orderQuantity" required="" always-float-label="" auto-validate=""></paper-input>
+              <vaadin-combo-box label="Product" name="product" items="[[productItems]]" id="productSelector" item-label-path="name" item-value-path="name" selected-item="{{product}}" required="" always-float-label=""></vaadin-combo-box>
+              <vaadin-combo-box label="Size" name="size" items="[[product.size]]" id="sizeSelector" disabled="true" item-label-path="name" item-value-path="name" selected-item="{{size}}" required="" always-float-label=""></vaadin-combo-box>
+              <vaadin-combo-box label="Color" name="color" items="[[product.color]]" id="colorSelector" disabled="true" item-label-path="name" item-value-path="name" selected-item="{{color}}" required="" always-float-label=""></vaadin-combo-box>              
+              <paper-dropdown-menu label="Machine" name="machine" id="machineSelector" disabled="true" required="" always-float-label="">
+              <paper-menu id="machineSelectorMenu" class="dropdown-content" multi="" selected-items="{{machine}}">
+                <template is="dom-repeat" items="[[machineItems]]" as="machineItem">
+                      <paper-item><paper-checkbox value="[[machineItem.code]]">[[machineItem.name]]</paper-checkbox></paper-item>
+                 </template>
+              </paper-menu>
+            </paper-dropdown-menu>
+              <vaadin-date-picker label="Delivery Date" name="delivery" required="" always-float-label="" autovalidate="" class="date-selector" id="deliverySelector"></vaadin-date-picker>
+              <br>
+              <vaadin-upload id="uploadOrder" max-files="1" accept=".csv" max-file-size="1000000"></vaadin-upload>
+               <div class="button-group">
+                <paper-button raised="" class="smart" on-tap="createOrder">Add to schedule</paper-button>
+                <paper-button raised="" class="fancy" on-tap="saveOrder">Save to waiting</paper-button>
+               </div>
+        </div>
+      </li>
+      <li>
+        <div class="card order-info">
+                <h1>Order Information</h1>
+                <p>Product Name: <span id="product">[[product.name]] [[size.name]] [[color.name]]</span></p>
+                <p>SKU Number: <span id="sku">[[product.sku]]</span></p>
+                <p>Actual Quantity: <span id="actualQuantity">[[calActualQuantity(factoryPerformance.aw, amount)]]</span></p>
+                <p>Processes Used: <span id="usedProcess">[[product.process]]</span></p>
+                <p>Machine Used: <span id="usedMachine">[[calUsedMachine(machine)]]</span></p>
+                <p>Delivery Date: <span id="estimateDelivery">[[calEstDelivery(factoryOperation.op_end, factoryOperation.op_start, size.cycle, size.setup, amount, orderQuery)]]</span></p>
+                <p>Estimate Duration (Hrs): <span id="estimateDuration">[[calLeadTime(size.cycle, size.setup, amount)]]</span></p>
+                <p>Total Setup Duration (Hrs): <span id="setupDuration">[[calSetupTime(size.setup)]]</span></p>
+                <p>Order Workload: <span id="orderWorkload">[[calWorkLoad(factoryPerformance.aw, size.cycle, size.setup, amount, machine)]]</span></p>
+                <p>Raw Material Use: <span id="rawMaterial"></span></p>
+                <p>Operation hours: <span id="operationHours">[[calOpTime(factoryOperation.op_end, factoryOperation.op_start)]]</span></p>
+        </div>
+      </li>
+    </ul>
+  </template>
+  <script>
+    Polymer({
+      is: 'view-plan-order',
+      properties: {
+        productSize: {
+          type: Object
+        },
+        machineItems: {
+          type: Object
+        },
+        productItems: {
+          type: Object
+        },
+        productQuery: {
+          type: Object
+        },
+        factoryPerformance: {
+          type: Object
+        },
+        factoryStandard: {
+          type: Object
+        },
+        factoryOperation: {
+          type: Object
+        },
+        orderQuery: {
+          type: Object,
+          reflectToAttribute: true,
+          observer : 'setOrderNumber'
+        },
+        orderDelivery: {
+          type: Object
+        },
+        amount: {
+          type: Object,
+        },
+        maxOrderNo: {
+          type: Number,
+        },
+        priority: {
+          type: Array,
+          value: function () {
+            return [{
+                name: 'Early Delivery (EDD)',
+                symbol: 'EDD',
+                number: 1
+              },
+              {
+                name: 'Shortest Duration First (SPT)',
+                symbol: 'SPT',
+                number: 2
+              }
+            ]
+          }
+        },
+        todayDate: {
+          type: Object,     
+          value: function () {
+          let date = new Date();
+          let dd = date.getDate();
+          let mm = date.getMonth() + 1; //January is 0!
+          let yyyy = date.getFullYear();
+          if (dd < 10) {
+            dd = '0' + dd
+          }
+          if (mm < 10) {
+            mm = '0' + mm
+         }
+          date = yyyy + '-' + mm  + '-' + dd;
+          return date;
+          }
+        },
+      },
+      setOrderNumber : function () {
+         // this.async('getOrderNumber', 3000);
+      },
+      getOrderNumber :function() {
+         
+      },
+      ready: function() {
+
+         this.$.machineSelector.ignoreSelect = true;
+         Sugar.Date.setLocale('en-GB');
+        
+         let estdelivery = this.$.estimateDelivery;
+         let deliverypicker = this.$.deliverySelector;
+         let actualquantity = this.$.actualQuantity;
+         let orderQuantity = this.$.orderQuantity; 
+         let productPicker = this.$.productSelector;
+         let sizePicker = this.$.sizeSelector;
+         let colorPicker = this.$.colorSelector;
+         let machinePicker = this.$.machineSelector;
+         // querySelector ==> this.shadowRoot.querySelector('')
+        deliverypicker.addEventListener('value-changed', function() {
+            if(deliverypicker.value != null) {
+                 let deliveryTimeStamp = (new Date(deliverypicker.value).getTime()/1000);
+                 console.log(deliveryTimeStamp);
+                 this.orderDelivery = deliveryTimeStamp;
+                  estdelivery.innerHTML = deliveryTimeStamp;
+                 console.log("fuck " + this.orderDelivery);
+            }
+           });
+
+        productPicker.addEventListener('value-changed', function() {
+          let product_list = productPicker.value;    
+          if(product_list != null && sizePicker.items != null) {
+                 sizePicker.disabled = false;
+                 colorPicker.disabled = false;
+                 machinePicker.disabled = false;
+              }
+          });
+
+         deliverypicker.i18n = {
+          week: 'Week',
+          calendar: 'Calendar',
+          clear: 'Clear',
+          today: 'Today',
+          cancel: 'Cancel',
+          firstDayOfWeek: 1,
+          monthNames:
+          'January_February_March_April_May_June_July_August_September_October_November_December'.split('_'),
+          weekdays: 'sunday_monday_tuesday_wednesday_thursday_friday_saturday'.split('_'),
+          weekdaysShort: 'sun_mon_tue_wed_thu_fri_sat'.split('_'),
+          formatDate: function(date) {
+            return Sugar.Date.format(date, '{short}');
+          },
+          formatTitle: function(monthName, fullYear) {
+            return monthName + ' ' + fullYear;
+          },
+          parseDate: function(dateString) {
+            let matches = deliverypicker.i18n.monthNames.filter(function(monthName) {
+              return monthName.toLowerCase().startsWith(dateString.trim().toLowerCase());
+            });
+            dateString = matches.length === 1 ? matches[0] : dateString;
+            return Sugar.Date.create(dateString);
+          }
+        };
+    },
+
+      createOrder: function () {
+        let orderNo = this.$.orderNumber.value;
+        let customerName = this.$.customerName.value;
+        let orderDateSTP = Math.round(new Date().getTime()/1000.0);
+        let orderProduct = this.$.productSelector.value;
+        let orderSKU = this.$.sku.innerHTML;
+        let orderSize = this.$.sizeSelector.value;
+        let orderQuantity = this.$.orderQuantity.value;
+        let orderDuration = this.$.estimateDuration.innerHTML;
+        let orderDelivery = (new Date(this.$.deliverySelector.value).getTime()/1000);
+       
+        if(orderNo != "" && customerName != "" && orderProduct != "" && orderSize != "" && orderQuantity != "" && orderDelivery != "") {
+            let today = new Date();
+            let dd = today.getDate();
+            let mm = today.getMonth() + 1; //January is 0!
+            let yyyy = today.getFullYear();
+             if (dd < 10) {
+             dd = '0' + dd
+             }
+          if (mm < 10) {
+            mm = '0' + mm
+          }
+          this.$.orderQuery.ref.push({
+          order_date: orderDateSTP,
+          order_no: orderNo,
+          order_customer: customerName,
+          order_product: orderProduct,
+          order_sku: orderSKU,
+          order_size: orderSize,
+          order_quantity: orderQuantity,
+          order_duration: orderDuration,
+          order_delivery: orderDelivery
+        }).key;
+           alert("Added to production schedule successfully");
+      } else {
+           alert("Input field cannot be blank, please fill in completely.");
+      }
+      },
+      saveOrder: function() {
+        let orderNo = this.$.orderNumber.value;
+        let customerName = this.$.customerName.value;
+        let orderProduct = this.$.productSelector.value;
+        let orderSize = this.$.sizeSelector.value;
+        let orderQuantity = this.$.orderQuantity.value;
+        let orderDelivery = (new Date(this.$.deliverySelector.value).getTime()/1000);
+       
+      if(orderNo != "" && customerName != "" && orderProduct != "" && orderSize != "" && orderQuantity != "" && orderDelivery != "") {
+          alert("Order has been saved to archive order.");
+      } else {
+          alert("Input field cannot be blank, please fill in completely.");
+      }
+      },
+      uploadFile: function() {
+        // upload order file to order schedule table or waiting table
+         alert("Invalid file format");
+      },
+
+    calSetupTime: function(setup) {
+          if(!setup) return 0;
+          let setupTime = 0;
+          for (let i in setup) {
+             setupTime += setup[i];
+          };
+          return setupTime;
+     },
+
+    calCycleTime: function(cycle, amount) {
+          if(!cycle || !amount) return 0;
+          let processTime = 0;
+          for (let i in cycle) {
+              processTime += cycle[i];
+          };
+          processTime = processTime*amount;
+          return processTime;
+    },
+
+    calLeadTime: function (cycle,setup, amount) {
+            if (!cycle || !amount) return '';
+            let leadTime = 0;
+            leadTime = this.calCycleTime(cycle,amount) + this.calSetupTime(setup); // second to hours
+            console.log(leadTime);
+            leadTime = Math.round(leadTime,2);
+            return leadTime; 
+     },
+
+     calEstDelivery: function (end, start, cycle, setup ,amount,order) {
+          if (!cycle || !amount || !setup) return '';  
+          let ophours = this.calOpTime(end,start);
+          let orderSize = Object.keys(order).length;
+          let setuptime = 0; // total initial time each process of the product 
+          let cycletime = 0; // total working time each process of the product
+          let leadtime  = 0; // total setup + working duration each process of the product
+          let timestamp = 0; // time stamp of estimate delivery date
+          let arr = [];
+          if(orderSize === 0) {
+             timestamp = (Math.round(new Date().getTime()/1000.0)); // if order list is empty set time stamp to now
+          }
+          else {
+              console.log(order);
+              for (let g in order) {
+              let arr = Object.values(order[g].order_quantity);
+            };
+           
+              this.calLeadTime(cycle,setup,amount);
+              let deliveryDate = "";
+              //console.log(JSON.stringify(order));
+              //console.log(Object.getOwnPropertyNames(order).length == 0);
+          //    let t = new Date(estdelivery_stp);
+          //    let dd = t.getDate();
+         //     let mm = t.getMonth() + 1; //January is 0!
+         //     let yyyy = t.getFullYear();
+         //     if (dd < 10) {
+          //    dd = '0' + dd
+         //     }
+         //     if (mm < 10) {
+         //     mm = '0' + mm
+       //     }
+       //     let deliveryDate = dd + '/' + mm + '/' + yyyy;
+            return deliveryDate;
+          }
+     },
+
+     calActualQuantity: function (accept_waste,amount) {
+        if(!amount || !accept_waste) return '';
+        let actual_quantity = Math.ceil((amount/(1-accept_waste)));
+        return actual_quantity;
+     },
+
+     calOpTime: function (end, start) {
+        if(!end || !start) return '';
+        let endtime =  end.replace(/\:/g,'.')
+        let starttime = start.replace(/\:/g,'.')
+        let optime = endtime - starttime;
+        return optime;
+     },
+
+     calWorkLoad: function (accept_waste, cycle, setup, amount, machine) {
+        if(!accept_waste || !cycle || !setup || !amount) return '';
+        let actualQuantity = this.calActualQuantity(accept_waste,amount); 
+        let cycleTime = this.calCycleTime(cycle, amount);
+        let setupTime = this.calSetupTime(setup);
+        let workload = Math.ceil((amount*cycleTime)+setupTime);
+        // workload/no of machine
+        return workload/(1-actualQuantity);
+     },
+
+     calUsedMachine: function (g) {
+        let selectedMachine = []; 
+        for (let key in g) {
+           selectedMachine[key] = g[key].value;
+        }
+        let machine_no = selectedMachine.length;
+        console.log("Machine no: " + machine_no);
+        return selectedMachine;
+     },
+
+    });
+  </script>
+</dom-module>
+</body></html>

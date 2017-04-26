@@ -1,0 +1,134 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../view-index.html">
+<link rel="import" href="../shared-styles.html">
+<dom-module id="view-setup-settings">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: block;
+        --app-grid-item-height: 50%;
+      }
+      
+       @media (min-width: 360px) and (max-width: 768px) {
+         :host {
+          --app-grid-columns: 1;
+        }
+      }
+
+      @media (min-width: 769px) and (max-width: 1024px) {
+         :host {
+          --app-grid-columns: 2;
+        }
+      }
+
+      @media (min-width: 1025px) and (max-width: 1200px) {
+         :host {
+          --app-grid-columns: 2;
+        }
+      }
+       @media (min-width: 1201px) and (max-width: 2560px) {
+         :host {
+          --app-grid-columns: 2;
+        }
+      }
+      .save-btn {
+        margin-top: 10px;
+      }
+    </style>
+    <firebase-document app-name="smart-mes" id="appLanguage" path="/metadata/appLanguage" data="{{language}}"></firebase-document>
+    <firebase-document app-name="smart-mes" id="appNotification" path="/metadata/appNotification" data="{{notification}}"></firebase-document>
+    <app-localstorage-document key="lang" data="{{language}}"></app-localstorage-document>
+<ul class="app-grid">
+<li>
+    <div class="card">
+    <h1>{{localize('general-settings')}}</h1>
+    <vaadin-combo-box label="{{localize('display-language')}}" id="languageSelector" items="[[languageList]]" name="language selector" item-label-path="name" item-value-path="value" value="[[language]]" selected-item="{{k}}" on-change="_changeLanguage" error-message="Invalid input" required auto-validate
+ always-float-label></vaadin-combo-box>
+    <paper-toggle-button value="[[notification]]" on-change="_changeNotification" id="switch" noink> {{localize('notification')}}</paper-toggle-button>
+</div>
+</li>
+<li>
+    <div class="card">
+      <h1>{{localize('account-settings')}}</h1>
+      <paper-input label="{{localize('email')}}" type="text"></paper-input>
+      <paper-input label="{{localize('current-password')}}" type="password"></paper-input>
+      <paper-input label="{{localize('confirm-password')}}" type="password"></paper-input>
+      <paper-button class="magic save-btn" on-tap="_saveSettings" raised>{{localize('save-settings')}}</paper-button> 
+    </div>
+</li>
+</ul>
+  <paper-tooltip for="switch" animation-delay="1000" offset="0" position="bottom">Notification is feature that notify you when the system has events.</paper-tooltip>
+  <paper-toast id="toastSaveSettings" always-on-top horizontal-align="right" text="{{localize('notification-save-settings')}}"></paper-toast>
+  <paper-toast id="toastAlertOn" always-on-top horizontal-align="right" text="{{localize('notification-alert-on')}}"></paper-toast>
+  <paper-toast id="toastAlertOff" always-on-top horizontal-align="right" text="{{localize('notification-alert-off')}}"></paper-toast>   
+  </template>
+  <script>
+    Polymer({
+      is: 'view-setup-settings',
+      properties: {
+        language: {
+          type: Object,
+          observer: '_changeLanguage'
+        },
+        notification: {
+          type: Object
+        },
+        languageList: {
+          type: Array,
+          value: function () {
+            return [{
+                name: 'English',
+                value: 'en'
+              },
+              {
+                name: 'ไทย',
+                value: 'th'
+              },
+              {
+                name: '日本語',
+                value: 'jp'
+              },
+              {
+                name: '中国',
+                value: 'en'
+              },
+              {
+                name: 'русский',
+                value: 'rs'
+              }
+            ]
+          }
+        },
+      },
+      behaviors: [
+        Polymer.AppLocalizeBehavior
+      ],
+      attached: function() {
+         this.loadResources(this.resolveUrl('../../data/locales.json'));
+      },
+
+      _changeLanguage: function() {
+        let selectedLang = this.$.languageSelector.value;
+
+        if(selectedLang === "en" || selectedLang === "th" || selectedLang === "jp" || selectedLang === "ch" || selectedLang === "rs") {
+         this.language = selectedLang;
+        }
+      },
+
+      _changeNotification: function() {
+        this.notification = this.$.switch.checked ? 'true' : 'false';
+        if(this.$.switch.checked) { 
+          this.$.toastAlertOn.open(); 
+          }
+        else { 
+          this.$.toastAlertOff.open(); 
+        }
+      },
+
+      _saveSettings: function() {
+        this.$.toastSaveSettings.open();
+      },
+      
+    });
+  </script>
+</dom-module>

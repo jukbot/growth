@@ -1,0 +1,66 @@
+<html><head><link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="view-index.html">
+<link rel="import" href="plan/view-plan-scheduling.html">
+<link rel="import" href="shared-styles.html">
+</head><body><dom-module id="view-schedule">
+  <template>
+    <style include="shared-styles">
+       :host {
+        display: block;
+      }
+    </style>
+    <firebase-document app-name="smart-mes" id="appLanguage" path="/metadata/appLanguage" data="{{language}}"></firebase-document>
+      <app-header-layout fullbleed="" has-scrolling-region="" class="subheader-layout">
+        <app-header fixed="" shadow="">
+          <app-toolbar sticky="" class="tabs-bar">
+            <paper-tabs selected="{{tabs}}" attr-for-selected="id" sticky="" bottom-item="" autoselect="" role="navigation" no-bar="" noink="">
+              <template is="dom-repeat" items="{{submenus}}">
+                <paper-tab id="{{item.view}}"><paper-icon-button icon="{{item.icon}}" alt="{{item.title}}"></paper-icon-button><span class="tab-title">SCHEDULING</span></paper-tab>
+              </template>
+            </paper-tabs>
+          </app-toolbar>
+        </app-header>
+          <iron-pages selected="[[tabs]]" attr-for-selected="name" role="main">
+          <view-plan-scheduling name="scheduling"></view-plan-scheduling>
+         </iron-pages> 
+        </app-header-layout>  
+  </template>
+  <script>
+    Polymer({
+      is: 'view-schedule',
+      properties: {
+        language: {
+          type: Object
+        },
+        tabs: {
+          type: String,
+          reflectToAttribute: true,
+          observer: '_tabsChanged',
+          value: 'scheduling'
+        },
+        submenus: {
+          type: Array,
+          value: function () {
+            return [
+              {
+                'title': 'scheduling',
+                'view': 'scheduling',
+                'icon': 'vaadin:date-input'
+              },
+            ];
+          }
+        }
+      },
+      behaviors: [
+        Polymer.AppLocalizeBehavior
+      ],
+      attached: function() {
+        this.loadResources(this.resolveUrl('../data/locales.json'));
+      },
+      _tabsChanged: function (tabs) {
+        let resolvedTabsUrl = this.resolveUrl('plan/view-plan-' + tabs + '.html');
+        this.importHref(resolvedTabsUrl, null, null, true); 
+      }
+    });
+  </script>
+</dom-module></body></html>

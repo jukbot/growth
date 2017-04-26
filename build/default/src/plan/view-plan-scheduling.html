@@ -1,0 +1,68 @@
+<html><head><link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../view-index.html">
+<link rel="import" href="../shared-styles.html">
+</head><body><dom-module id="view-plan-scheduling">
+  <template>
+    <style include="shared-styles">
+       :host {
+        display: block;
+        --app-grid-item-height: 50%;
+        --vaadin-context-menu-overlay: {
+          background-color: #ffffff;
+        }
+      }
+
+      @media (min-width: 360px) and (max-width: 768px) {
+         :host {
+          --app-grid-columns: 3;
+        }
+      }
+
+      @media (min-width: 769px) and (max-width: 1024px) {
+         :host {
+          --app-grid-columns: 3;
+        }
+      }
+
+      @media (min-width: 1025px) and (max-width: 1200px) {
+         :host {
+          --app-grid-columns: 3;
+        }
+      }
+
+      @media (min-width: 1201px) and (max-width: 2560px) {
+         :host {
+          --app-grid-columns: 3;
+        }
+      }
+
+  
+    </style>
+   <firebase-query app-name="growth" id="farmQuery" path="/farm" order-by-child="name" data="{{farmData}}"></firebase-query>
+   <div class="card">
+      <h1>Watering Scheduling</h1>
+<vaadin-combo-box label="Which Farm ?" name="farm-selector" on-change="farmSelectChanged" id="farmSelector" items="[[farmData]]" item-label-path="name" item-value-path="$key" required="" always-float-label=""></vaadin-combo-box>  
+<mp-calendar day-labels="[&quot;Su&quot;,&quot;Mo&quot;,&quot;Tu&quot;,&quot;We&quot;,&quot;Th&quot;,&quot;Fr&quot;,&quot;Sa&quot;]"></mp-calendar>
+    </div>
+    
+  </template>
+  <script>
+    Polymer({
+      is: 'view-plan-scheduling',
+      properties: {
+        farmData: {
+          type: Object,
+          notify: true
+        }
+      },
+
+      farmSelectChanged: function() {
+          console.log(this.$.farmSelector.value);
+      }
+
+    });
+  </script>
+</dom-module>
+  
+
+     </body></html>

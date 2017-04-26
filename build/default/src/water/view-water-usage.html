@@ -1,0 +1,89 @@
+<html><head><link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../view-index.html">
+<link rel="import" href="../shared-styles.html">
+</head><body><dom-module id="view-water-usage">
+<template>
+    <style include="shared-styles">
+     :host {
+        display: block;
+        --app-grid-item-height: 50%;
+      }
+      
+       @media (min-width: 360px) and (max-width: 768px) {
+         :host {
+          --app-grid-columns: 1;
+        }
+      }
+
+      @media (min-width: 769px) and (max-width: 1024px) {
+         :host {
+          --app-grid-columns: 2;
+        }
+      }
+
+      @media (min-width: 1025px) and (max-width: 1200px) {
+         :host {
+          --app-grid-columns: 3;
+        }
+      }
+       @media (min-width: 1201px) and (max-width: 2560px) {
+         :host {
+          --app-grid-columns: 3;
+        }
+      }
+
+      .percent {
+        font-size: 7rem;
+        color: #333;
+        text-align: center;
+      }
+
+      .card h1 {
+        font-size: 1.6rem;
+        text-align: center;
+      }
+    </style>
+    <ul class="app-grid">
+      <li>
+        <div class="card">
+          <h1>Water Usage</h1>
+              <vaadin-line-chart id="basic-line-with-data-labels">
+    <chart-title>Monthly Average Water Usage</chart-title>
+    <subtitle>From sensor nodemcu esp8266</subtitle>
+    <x-axis>
+        <categories>Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec</categories>
+    </x-axis>
+
+    <y-axis>
+        <chart-title>Water usage (mm.)</chart-title>
+    </y-axis>
+
+    <tooltip formatter="function() {return '' + this.series.name + ' ' + this.x + ': ' + this.y + '°C';}"></tooltip>
+
+    <plot-options>
+        <line enable-mouse-tracking="false">
+            <data-labels enabled="true"></data-labels>
+        </line>
+    </plot-options>
+    <data-series name="Water" data="[[waterData]]">
+    </data-series>
+</vaadin-line-chart>
+        </div>
+      </li>     
+    </ul>
+  </template>
+  <script>
+    Polymer({
+      is: 'view-water-usage',
+      properties: {
+         waterData: {
+          type: Object,
+          value: function() {
+            return [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]
+          }
+        }
+      }
+    });
+  </script>
+</dom-module>
+</body></html>

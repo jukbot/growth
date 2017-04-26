@@ -1,0 +1,27 @@
+{
+  "entrypoint": "index.html",
+  "shell": "src/view-index.html",
+  "fragments": [
+    "src/view-dashboard.html",
+    "src/view-farm.html",
+    "src/view-schedule.html",
+    "src/view-watering.html",
+    "src/view-404.html",
+    "src/view-settings.html"
+  ],
+  "sources": [
+    "src/**/*",
+    "images/**/*",
+    "data/**/*",
+    "bower.json"
+  ],
+  "extraDependencies": [
+    "manifest.json",
+    "bower_components/webcomponentsjs/webcomponents-lite.min.js",
+    "bower_components/app-storage/app-indexeddb-mirror/app-indexeddb-mirror-worker.js",
+    "bower_components/app-storage/app-indexeddb-mirror/common-worker-scope.js"
+  ],
+  "lint": {
+    "rules": ["polymer-2-hybrid"]
+  }
+}

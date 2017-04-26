@@ -1,0 +1,81 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="view-index.html">
+<link rel="import" href="shared-styles.html">
+<link rel="import" href="shared-styles.html">
+<link rel="import" href="setup/view-setup-farm.html">
+<dom-module id="view-farm">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: block;
+      }
+    </style>  
+     <firebase-document app-name="smart-mes" id="appLanguage" path="/metadata/appLanguage" data="{{language}}"></firebase-document>
+     <app-localstorage-document key="lang" data="{{language}}"></app-localstorage-document>
+      <app-header-layout fullbleed has-scrolling-region class="subheader-layout">
+        <app-header fixed shadow>
+          <app-toolbar sticky>
+            <paper-tabs id="setupTabs" selected="{{tabs}}" attr-for-selected="id" sticky bottom-item autoselect role="navigation" no-bar noink>
+              <template is="dom-repeat" items="{{submenus}}">
+                <paper-tab id="{{item.view}}" disabled="{{item.disable}}"><paper-icon-button icon="{{item.icon}}" alt="{{item.title}}"></paper-icon-button><span class="tab-title">[[item.title]]</span></paper-tab>
+              </template>
+            </paper-tabs>
+          </app-toolbar>
+        </app-header>
+          <iron-pages selected="[[tabs]]" attr-for-selected="name" role="main">
+          <view-setup-farm name="farm"></view-setup-farm>
+         </iron-pages>
+        </app-header-layout>  
+  </template>
+  <script>
+    Polymer({
+      is: 'view-farm',
+      properties: {
+        language: {
+          type: Object,
+          notify: true,
+          value: function () {
+            if(localStorage.getItem("lang") != null) {
+              return localStorage.getItem("lang");
+            } 
+            else if(localStorage.getItem("lang") == null) {
+              return "en";
+            } 
+            else {
+              return this.language;
+            }
+          }
+        },
+        tabs: {
+          type: String,
+          observer: '_tabsChanged',
+          value: 'farm'
+        },
+       submenus: {
+          type: Array,
+          value: function () {
+            return [
+              {
+                'title': 'farm',
+                'view': 'farm',
+                'icon': 'vaadin:viewport',
+                'disable': false
+              }
+            ];
+          }
+        }
+      },
+      behaviors: [
+        Polymer.AppLocalizeBehavior
+      ],
+      attached: function() {
+         this.loadResources(this.resolveUrl('../data/locales.json'));
+      },
+      _tabsChanged: function (tabs) { 
+       let resolvedTabsUrl = this.resolveUrl('setup/view-setup-' + tabs + '.html');
+       this.importHref(resolvedTabsUrl, null, null, true);
+      }, 
+    });
+  </script>
+</dom-module>
+
