@@ -35,11 +35,107 @@
 
     </style>
    <firebase-query app-name="growth" id="deviceQuery" path="/device" order-by-child="name" data="{{deviceData}}"></firebase-query>
-    <firebase-query app-name="growth" id="sensorQuery" path="/device/{{sensor.$key}}/history" data="{{sensorData}}"></firebase-query>
+   <firebase-query app-name="growth" id="sensorQuery" path="/device/{{sensor.$key}}/history" data="{{sensorData}}"></firebase-query>
      <ul class="app-grid">
+       <li>
+   <div class="card">
+<h1>Sensor Data History</h1>
+<paper-button class="chilli clear-noti-btn" style="width: 300px" raised="" on-tap="clearSensorHistory">Clear History</paper-button>
+<vaadin-combo-box label="Device Sensor" name="sensor" items="[[deviceData]]" id="sensorSelector" item-label-path="name" item-value-path="name" selected-item="{{sensor}}" required="" always-float-label=""></vaadin-combo-box>
+<vaadin-grid aria-label="Sensor History Table" items="[[sensorData]]">
+              <vaadin-grid-column width="3em" flex-grow="0">
+                <template class="header">Index</template>
+                <template>[[index]]</template>
+              </vaadin-grid-column>
+               <vaadin-grid-column>
+                <template class="header">Date</template>
+                <template>[[getDate(item.timestamp)]]</template>
+              </vaadin-grid-column>
+              <vaadin-grid-column>
+                <template class="header">
+                  Time
+                </template>
+                <template>[[getTime(item.timestamp)]]</template>
+              </vaadin-grid-column>
+              <vaadin-grid-column>
+                <template class="header">
+                  Temperature
+                </template>
+                <template>[[item.temperature]] ℃</template>
+              </vaadin-grid-column>
+               <vaadin-grid-column>
+                <template class="header">
+                  Humidity 
+                </template>
+                <template>[[item.humidity]] %</template>
+              </vaadin-grid-column>
+               <vaadin-grid-column>
+                <template class="header">
+                  Soil Moisture
+                </template>
+                <template>[[item.soil]] %</template>
+              </vaadin-grid-column>
+              <vaadin-grid-column>
+                <template class="header">
+                  Soil Status
+                </template>
+                <template>[[item.soil_status]]</template>
+              </vaadin-grid-column>
+                  </vaadin-grid>
+   </div>
+ </li>
       <li>
    <div class="card">
-      <div>
+       <vaadin-spline-chart id="updatingSpline" on-chart-loaded="loadListener">
+            <chart animation="true" margin-right="10">
+            </chart>
+            <chart-title>Realtime reading [[deviceData.1.name]]</chart-title>
+            <x-axis type="datetime" tick-pixel-interval="150">
+            </x-axis>
+            <y-axis>
+                <chart-title>Moisture %</chart-title>
+                <plot-lines value="0" width="1" color="#808080"></plot-lines>
+            </y-axis>
+
+            <tooltip formatter="function () {
+                    return '<b>' + this.series.name + '</b><br/>' +
+                        Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) + '<br/>' +
+                        Highcharts.numberFormat(this.y, 2);}">
+            </tooltip>
+
+            <legend enabled="false"></legend>
+
+            <exporting enabled="false"></exporting>
+
+            <data-series name="Random data">
+                <data>
+                    [(new Date()).getTime()-18000,Math.random()],
+                    [(new Date()).getTime()-17000,Math.random()],
+                    [(new Date()).getTime()-16000,Math.random()],
+                    [(new Date()).getTime()-15000,Math.random()],
+                    [(new Date()).getTime()-14000,Math.random()],
+                    [(new Date()).getTime()-13000,Math.random()],
+                    [(new Date()).getTime()-12000,Math.random()],
+                    [(new Date()).getTime()-11000,Math.random()],
+                    [(new Date()).getTime()-10000,Math.random()],
+                    [(new Date()).getTime()-9000,Math.random()],
+                    [(new Date()).getTime()-8000,Math.random()],
+                    [(new Date()).getTime()-7000,Math.random()],
+                    [(new Date()).getTime()-6000,Math.random()],
+                    [(new Date()).getTime()-5000,Math.random()],
+                    [(new Date()).getTime()-4000,Math.random()],
+                    [(new Date()).getTime()-3000,Math.random()],
+                    [(new Date()).getTime()-2000,Math.random()],
+                    [(new Date()).getTime()-1000,Math.random()],
+                    [(new Date()).getTime(),Math.random()]
+                </data>
+            </data-series>
+
+        </vaadin-spline-chart>
+  </div>
+ </li>
+  <li>
+   <div class="card">
       <vaadin-line-chart id="basic-line-with-data-labels">
     <chart-title>Monthly Average Soil Moisture</chart-title>
     <subtitle>From sensor nodemcu esp8266</subtitle>
@@ -62,7 +158,6 @@
      <data-series name="Soil Moisture" data="[[soilMoistureData]]">
     </data-series>
 </vaadin-line-chart>
-      </div>
  </div>
  </li>
  <li>
@@ -92,54 +187,6 @@
 </vaadin-line-chart>
  </div>
  </li>
- <li>
-   <div class="card">
-<h1>Sensor Data History</h1>
-
-<paper-button class="chilli clear-noti-btn" raised="" on-tap="clearSensorHistory">Clear History</paper-button>
-<vaadin-combo-box label="Device Sensor" name="sensor" items="[[deviceData]]" id="sensorSelector" item-label-path="name" item-value-path="name" selected-item="{{sensor}}" required="" always-float-label=""></vaadin-combo-box>
-<vaadin-grid aria-label="Sensor History Table" items="[[sensorData]]">
-              <vaadin-grid-column width="3em" flex-grow="0">
-                <template class="header">Index</template>
-                <template>[[index]]</template>
-              </vaadin-grid-column>
-               <vaadin-grid-column>
-                <template class="header">Date</template>
-                <template>[[item.timestamp]]</template>
-              </vaadin-grid-column>
-              <vaadin-grid-column>
-                <template class="header">
-                  Time
-                </template>
-                <template>[[item.timestamp]]</template>
-              </vaadin-grid-column>
-              <vaadin-grid-column>
-                <template class="header">
-                  Temperature
-                </template>
-                <template>[[item.temperature]] ℃</template>
-              </vaadin-grid-column>
-               <vaadin-grid-column>
-                <template class="header">
-                  Humidity 
-                </template>
-                <template>[[item.humidity]] %</template>
-              </vaadin-grid-column>
-               <vaadin-grid-column>
-                <template class="header">
-                  Soil Moisture
-                </template>
-                <template>[[item.soil]] %</template>
-              </vaadin-grid-column>
-              <vaadin-grid-column>
-                <template class="header">
-                  Soil Status
-                </template>
-                <template>[[item.soil_status]]</template>
-              </vaadin-grid-column>
-                  </vaadin-grid>
-   </div>
- </li>
  </ul>
   <paper-toast id="toast" always-on-top="" horizontal-align="right" text="Clear sensor history"></paper-toast>
   </template>
@@ -147,7 +194,9 @@
   <script>
     Polymer({
       is: 'view-dashboard-statistic',
-      properties: {
+      properties: {    
+        isAttached: Boolean,
+        isChartReady: Boolean,
         sensorData: {
           type: Object
         },
@@ -175,7 +224,62 @@
       },
        clearSensorHistory: function() {
           this.$.sensorQuery.ref.remove();
-        } 
+        },
+        getDate: function (timestamp) {
+          let today = new Date(timestamp*1000);
+          let dd = today.getDate();
+          let mm = today.getMonth() + 1; //January is 0!
+          let yyyy = today.getFullYear();
+          if (dd < 10) {
+           dd = '0' + dd
+          }
+          if (mm < 10) {
+           mm = '0' + mm
+         }
+         let date = dd + '/' + mm + '/' + yyyy;
+         return date;
+      },
+       getTime: function (timestamp) {
+          let today = new Date(timestamp*1000);
+          let hh = today.getHours();
+          let mm = today.getMinutes();
+          let ss = today.getSeconds();
+          if (hh < 10) {
+           hh = '0' + hh
+          }
+          if (mm < 10) {
+           mm = '0' + mm
+         }
+         if (ss < 10) {
+           ss = '0' + ss
+         }
+         let time = hh + ':' + mm + ':' + ss;
+         return time;
+    },
+           attached: function () {
+                this.isAttached = true;
+                this.updateChart();
+            },
+
+            detached: function () {
+                this.isAttached = false;
+            },
+
+            loadListener: function (e) {
+                this.isChartReady = true;
+                this.updateChart();
+            },
+             updateChart: function () {
+                if (this.isAttached && this.isChartReady) {
+                    var chart = this.$.updatingSpline.chart;
+                    var series = chart.series[0];
+                    var x = (new Date()).getTime(), // current time
+                            y = Math.random();
+                    series.addPoint([x, y], true, true);
+
+                    this.async(this.updateChart, 1000);
+                }
+            }
     });
   </script>
 </dom-module>

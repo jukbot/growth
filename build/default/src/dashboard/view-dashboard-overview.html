@@ -42,8 +42,9 @@
       }
       .emotion {
         font-size: 4rem;
+        text-align: center;
       }
-      .soil_emotion {
+      .soil_emotion, .temp_emotion, .humid_emotion {
         width: 15%;
         text-align: center;
       }
@@ -53,8 +54,17 @@
 <firebase-document app-name="growth" id="soilQuery" path="/soil" data="{{soil}}"></firebase-document>
 <firebase-document app-name="growth" id="soilStatusQuery" path="/soil_status" data="{{soil_status}}"></firebase-document>
 <firebase-document app-name="growth" id="soilEmotionQuery" path="/soil_emotion" data="{{soil_emotion}}"></firebase-document>
-<firebase-document app-name="growth" id="farmQuery" path="/farm/-KibMoVqbif9LUveY-Fr" order-by-child="name" data="{{farmData}}"></firebase-document>
-   
+<firebase-query app-name="growth" id="farmQuery" path="/farm" order-by-child="name" data="{{farmData}}"></firebase-query>
+<firebase-query app-name="growth" id="deviceQuery" path="/device" order-by-child="name" data="{{deviceData}}"></firebase-query>
+   <div class="card">
+     <h1>Select Farm</h1>
+      <vaadin-combo-box label="Farm" name="farm" items="[[farmData]]" id="farmSelector" item-label-path="name" item-value-path="name" selected-item="{{selectFarm}}" focused="" always-float-label=""></vaadin-combo-box>       
+      <vaadin-combo-box label="Device Sensor" name="sensor" items="[[deviceData]]" id="sensorSelector" value="[[selectFarm.sensor_name]]" item-label-path="name" item-value-path="name" selected-item="{{sensor}}" required="" always-float-label=""></vaadin-combo-box>
+      <h1>Location</h1>
+      <h2>[[selectFarm.location]], [[selectFarm.district]]</h2>
+      <h1>Plant Type</h1>
+      <h2>[[selectFarm.plant_type]] ([[selectFarm.plant_age]] weeks)</h2>
+  </div>
     <ul class="app-grid">
       <li>
         <div class="card">
@@ -74,31 +84,53 @@
           <h1 class="data">[[soil]] %</h1>
           </div>
       </li>
-    </ul>
+    </ul>    
+    <ul class="app-grid">
+      <li>
       <div class="card">
-        <h1 class="data-header">Soil Health Status</h1>
+        <h1 class="data-header">Temperature Status</h1>
         <div class="data">
-        <img class="soil_emotion" alt="soil_status" src="{{get_emotion(soil_emotion)}}">
+        <img class="temp_emotion" alt="N/A" src$="[[get_temp_emotion(temp,selectFarm.plant_min_temp, selectFarm.plant_max_temp)]]">
+        <h1 class="emotion">[[temp_status]]</h1>
+        </div>
+        </div>
+        </li>
+      <li>
+           <div class="card">
+        <h1 class="data-header">Humidity Status</h1>
+        <div class="data">
+        <img class="humid_emotion" alt="N/A" src$="{{get_humid_emotion(humid)}}">
+        <h1 class="emotion">[[humid_status]]</h1>
+        </div>
+        </div>
+        </li>
+      <li>
+         <div class="card">
+        <h1 class="data-header">Soil Status</h1>
+        <div class="data">
+        <img class="soil_emotion" alt="N/A" src$="{{get_soil_emotion(soil_emotion)}}">
         <h1 class="emotion">[[soil_status]]</h1>
         </div>
         </div>
+     </li>
+    </ul>     
  <ul class="app-grid">
       <li>
         <div class="card">
           <h1 class="data-header">Crop Evapotranspiration</h1>
-         <h1 class="data">[[getKC(farmData.plant_age,farmData.eto,farmData.kc,farmData.timestamp)]] mm.</h1>
+         <h1 class="data">[[getKC(selectFarm.plant_age,selectFarm.eto,selectFarm.kc,selectFarm.timestamp)]] mm.</h1>
         </div>
       </li>
       <li>
         <div class="card">
           <h1 class="data-header">Today Watering</h1>
-          <h1 class="data">[[calcurrentET(soil,farmData.plant_age,farmData.eto,farmData.kc,farmData.timestamp)]] mm.</h1>
+          <h1 class="data">[[calcurrentET(soil,humid,selectFarm.plant_age,selectFarm.eto,selectFarm.kc,selectFarm.timestamp)]] mm.</h1>
         </div>
       </li>
       <li>
         <div class="card">
           <h1 class="data-header">Next Watering</h1>
-          <h1 class="data">[[farmData.water]]</h1>
+          <h1 class="data">[[selectFarm.water]]</h1>
           </div>
       </li>
     </ul>
@@ -113,34 +145,86 @@
         temp: {
           type: Object
         },
+        deviceData: {
+          type: Object
+        },
         soil: {
           type: Object
         },
         soil_status: {
-          type: String
+          type: String,
+          notify: true,
+          value: (function () {
+            return "N/A";
+          })
+        },
+        temp_status: {
+          type: String,
+          notify: true,
+          value: (function () {
+            return "N/A";
+          })
+        },
+        humid_status: {
+          type: String,
+          notify: true,
+          value: (function () {
+            return "N/A";
+          })
         },
         soil_emotion: {
-          type: String
+          type: String,
+          value: (function () {
+            return "0";
+          })
         },
         water_time: {
           type: String
         },
-        weather_datetime: {
-          type: String,
-          value: function() {
-              return "";
-          }
-        },
         farmData: {
+          type: Object
+        },
+        selectFarm: {
           type: Object
         }
       },
-      get_emotion: function(e) {
+      get_soil_emotion: function(e) {
         if(e != null) {
           return "../../images/status/" + e + ".svg";
         } 
         else {
-          return "../../images/status/normal.svg";
+          return "../../images/status/0.svg";
+        }
+      },
+      get_temp_emotion(temp,min,max) {
+        if(typeof min == 'undefined' && typeof max == 'undefined') return "../../images/status/0.svg";
+        if(min != "" && max != "") {
+          if (temp >= min && temp <= max) {
+            this.temp_status = "Normal";
+            return "../../images/status/" + 4 + ".svg";
+          }
+          else {
+            this.temp_status = "Not suitable";
+            return "../../images/status/" + 6 + ".svg";
+          }
+        }
+        else {
+          this.temp_status = "N/A";
+          return "../../images/status/0.svg";
+        }
+      },
+      get_humid_emotion(humid) {
+        if(humid >= 40 && humid <= 70) {
+           this.humid_status = "Normal";
+           return "../../images/status/" + 4 + ".svg";
+        } 
+        else if(humid < 40 && humid > 0) {
+           this.humid_status = "Dry";
+           return "../../images/status/" + 2 + ".svg";
+        }
+        else if(humid > 70 && humid < 100) {
+           this.humid_status = "Moist"
+            return "../../images/status/" + 7 + ".svg";
         }
       },
       updatePlantAge: function () {
@@ -152,41 +236,67 @@
               this.set('farmData.plant_age', week);
         }
       },
-      calcurrentET: function(s,age,eto,kc,timestamp,key) {
-        let week = age;
+      calcurrentET(soil,humid,age,eto,kc,timestamp) {
+        let week;
+        let current = Math.floor(Date.now() / 1000);
         let d = new Date();
         let m = d.getMonth()+1; // Jan start from 0
         let eto_arr = eto.split(",");
         let kc_arr = kc.split(",");
         let current_eto = eto_arr[m];
+        let diff = current - timestamp;
+        let temp = Math.ceil(diff/604800);
+         if(temp <= 1) {
+             week = Number(age);
+        } else {
+            week = Number(age) + temp;
+        }
         let current_kc = kc_arr[week];
         let et = (current_eto*current_kc).toFixed(2);
 
-        if (typeof Object.keys(this.soil) !== 'undefined') {
-          if(this.soil > 60) {
+        if (typeof Object.keys(this.soil) !== 'undefined' && typeof Object.keys(this.humid) !== 'undefined') {
+          if(this.humid > 80 && this.humid <= 100) {
             return 0;
-          } else if(this.soil >= 50 && this.soil <= 60) {
-             return (0.5*et).toFixed(2);
-          } else if(this.soil >= 40 && this.soil < 50) {
-             return (0.75*et).toFixed(2);
-          } else if (this.soil < 40) {
-             return et;
           }
+          else if(this.humid <= 80 && this.humid >= 30) {
+              if(this.soil > 60) {
+                return 0;
+              } else if(this.soil >= 50 && this.soil <= 60) {
+                return (0.25*et).toFixed(2);
+              } else if(this.soil >= 40 && this.soil < 50) {
+                return (0.50*et).toFixed(2);
+              } else if(this.soil >= 30 && this.soil < 40) {
+                return (0.75*et).toFixed(2);
+              } else if (this.soil < 30) {
+                return et;
+              }
+          } else if(this.humid < 30) {
+              return et;
+          } 
         }
       },
 
-      getKC(age,eto,kc,timestamp,key) {
-        let week = age;
+     getKC(age,eto,kc,timestamp) {
+        let week;
+        let current = Math.floor(Date.now() / 1000);
         let d = new Date();
         let m = d.getMonth()+1; // Jan start from 0
         let eto_arr = eto.split(",");
         let kc_arr = kc.split(",");
         let current_eto = eto_arr[m];
+        let diff = current - timestamp;
+
+        let temp = Math.ceil(diff/604800);
+      
+        if(temp <= 1) {
+             week = Number(age);
+        } else {
+            week = Number(age) + temp;
+        }
         let current_kc = kc_arr[week];
         let et = (current_eto*current_kc).toFixed(2);
         return et;
       }
-
     });
   </script>
 </dom-module>
