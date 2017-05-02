@@ -173,7 +173,6 @@
         <img class="logo" src="../images/logo/sprout.svg" alt="Application Logo">
         <div class="main-title">Growth</div>
         <div class="main-describe">{{localize('app-description')}}</div>
-        <!-- sidebar hightlighter -->
         <iron-selector selected="[[page]]" attr-for-selected="name" class="drawer-list" fallback-selection="dashboard" role="navigation">
         <a name="dashboard" href="/dashboard"><paper-icon-button icon="vaadin:dashboard"></paper-icon-button> {{localize('dashboard')}}</a>
         <a name="farm" href="/farm"><paper-icon-button icon="maps:local-florist"></paper-icon-button>  {{localize('farm')}}</a>
@@ -182,23 +181,6 @@
         <a name="settings" href="/settings"><paper-icon-button icon="vaadin:cog"></paper-icon-button> {{localize('menu-settings')}}</a>
         </iron-selector>
         <div class="sidebar-menu-line"></div>
-      <!--  <div class="center-box">
-          <paper-button raised class="water authen-btn" on-tap="_login" hidden$="[[user]]">{{localize('login-button')}}</paper-button>
-          <paper-button raised class="water authen-btn" on-tap="_logout" hidden$="[[!user]]">{{localize('logout-button')}}</paper-button>
-        </div> -->
-        <template is="dom-if" if="[[user]]">
-          <div class="profile">
-          <img style="width: 150px;" src="{{user.photoURL}}" alt="user photo">
-          <p>[[user.displayName]]</p>
-          <p>E-mail: [[user.email]]</p>
-          <p>Verify: [[user.emailVerified]]</p>
-          </div>
-         <div class="profile">
-          <p>[[metadata.appName]]</p>
-          <p>{{localize('version')}} [[metadata.appVersion]]</p>
-          <p>{{localize('developed-by')}} [[metadata.appDeveloper]]</p>
-          </div>
-        </template>
       </app-drawer>
 
       <app-header-layout fullbleed has-scrolling-region>
@@ -209,7 +191,7 @@
             <paper-menu-button dynamic-align>
               <paper-icon-button icon="vaadin:user" class="account-btn dropdown-trigger" alt="account"></paper-icon-button>
               <paper-menu class="dropdown-content">
-                  <a href="https://github.com/jukbot/smart-industry" target="_blank">
+                  <a href="https://github.com/jukbot/growth" target="_blank">
                   <paper-icon-item class="menu-item" name="help">
                     <iron-icon icon="vaadin:question-circle" alt="help" item-icon></iron-icon>
                     {{localize('help')}}
@@ -232,8 +214,7 @@
           <view-schedule name="schedule" route="{{subroute}}"></view-schedule>
           <view-watering name="watering" route="{{subroute}}"></view-watering>
           <view-settings name="settings" route="{{subroute}}"></view-settings>
-          <view-404 name="404" route="{{subroute}}"></view-404> 
-          <view-test name="test" route="{{subroute}}"></view-test>          
+          <view-404 name="404" route="{{subroute}}"></view-404>        
         </iron-pages>
       </app-header-layout>
     </app-drawer-layout> 
@@ -322,8 +303,8 @@
           notificationCount = this.notificationItems.length;
        
           if(this.soil > 70) {
-             this.$.moistureHighAlert.open();
              if(this.notificationItems.length <= 10) {
+             this.$.moistureHighAlert.open();
              this.$.notificationQuery.ref.push({ 
                detail : "High moisture soil detected.",
                timestamp : Math.round(new Date().getTime()/1000.0),
@@ -332,8 +313,8 @@
              }
           }
           if(this.soil < 30) {
-             this.$.moistureLowAlert.open(); 
             if(this.notificationItems.length <= 10) {
+             this.$.moistureLowAlert.open(); 
              this.$.notificationQuery.ref.push({ 
                detail : "Low moisture soil detected.",
                timestamp : Math.round(new Date().getTime()/1000.0),

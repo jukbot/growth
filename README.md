@@ -11,22 +11,19 @@ Inefficient watering plant management may lead to an excessive or insufficient i
 
 ## Build Status
 
-[![Build Status](https://travis-ci.org/jukbot/smart-industry.svg?branch=master)](https://travis-ci.org/jukbot/smart-industry)
+
 
 ## System Requirement
 
 ### Operation System
-- Windows 7 
-- Windows 8, 8.1
 - Windows 10
-- MacOS 10.11, 10.12
+- MacOS 10.12
 - Ubuntu 14.04, 16.04
 - CentOS 7.2
 
 ### Browsers
-- Google Chrome 57
-- Firefox 52
-- Opera 44
+- Google Chrome 59
+- Firefox 53
 - Microsoft Edge 15 (!!Unstable!!) 
 
 ## What is Polymer ?
