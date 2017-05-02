@@ -35,11 +35,60 @@
 
     </style>
    <firebase-query app-name="growth" id="deviceQuery" path="/device" order-by-child="name" data="{{deviceData}}"></firebase-query>
-    <firebase-query app-name="growth" id="sensorQuery" path="/device/{{sensor.$key}}/history" data="{{sensorData}}"></firebase-query>
+   <firebase-query app-name="growth" id="sensorQuery" path="/device/{{sensor.$key}}/history" data="{{sensorData}}"></firebase-query>
      <ul class="app-grid">
       <li>
    <div class="card">
-      <div>
+       <vaadin-spline-chart id="updatingSpline" on-chart-loaded="loadListener">
+            <chart animation="true" margin-right="10">
+            </chart>
+            <chart-title>Realtime reading [[deviceData.1.name]]</chart-title>
+            <x-axis type="datetime" tick-pixel-interval="150">
+            </x-axis>
+            <y-axis>
+                <chart-title>Moisture %</chart-title>
+                <plot-lines value="0" width="1" color="#808080"></plot-lines>
+            </y-axis>
+
+            <tooltip formatter="function () {
+                    return '<b>' + this.series.name + '</b><br/>' +
+                        Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) + '<br/>' +
+                        Highcharts.numberFormat(this.y, 2);}">
+            </tooltip>
+
+            <legend enabled="false"></legend>
+
+            <exporting enabled="false"></exporting>
+
+            <data-series name="Random data">
+                <data>
+                    [(new Date()).getTime()-18000,Math.random()],
+                    [(new Date()).getTime()-17000,Math.random()],
+                    [(new Date()).getTime()-16000,Math.random()],
+                    [(new Date()).getTime()-15000,Math.random()],
+                    [(new Date()).getTime()-14000,Math.random()],
+                    [(new Date()).getTime()-13000,Math.random()],
+                    [(new Date()).getTime()-12000,Math.random()],
+                    [(new Date()).getTime()-11000,Math.random()],
+                    [(new Date()).getTime()-10000,Math.random()],
+                    [(new Date()).getTime()-9000,Math.random()],
+                    [(new Date()).getTime()-8000,Math.random()],
+                    [(new Date()).getTime()-7000,Math.random()],
+                    [(new Date()).getTime()-6000,Math.random()],
+                    [(new Date()).getTime()-5000,Math.random()],
+                    [(new Date()).getTime()-4000,Math.random()],
+                    [(new Date()).getTime()-3000,Math.random()],
+                    [(new Date()).getTime()-2000,Math.random()],
+                    [(new Date()).getTime()-1000,Math.random()],
+                    [(new Date()).getTime(),Math.random()]
+                </data>
+            </data-series>
+
+        </vaadin-spline-chart>
+  </div>
+ </li>
+  <li>
+   <div class="card">
       <vaadin-line-chart id="basic-line-with-data-labels">
     <chart-title>Monthly Average Soil Moisture</chart-title>
     <subtitle>From sensor nodemcu esp8266</subtitle>
@@ -62,7 +111,6 @@
      <data-series name="Soil Moisture" data="[[soilMoistureData]]">
     </data-series>
 </vaadin-line-chart>
-      </div>
  </div>
  </li>
  <li>
