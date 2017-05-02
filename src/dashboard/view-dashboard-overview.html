@@ -44,7 +44,7 @@
         font-size: 4rem;
         text-align: center;
       }
-      .soil_emotion {
+      .soil_emotion, .temp_emotion, .humid_emotion {
         width: 15%;
         text-align: center;
       }
@@ -55,10 +55,16 @@
 <firebase-document app-name="growth" id="soilStatusQuery" path="/soil_status" data="{{soil_status}}"></firebase-document>
 <firebase-document app-name="growth" id="soilEmotionQuery" path="/soil_emotion" data="{{soil_emotion}}"></firebase-document>
 <firebase-query app-name="growth" id="farmQuery" path="/farm" order-by-child="name" data="{{farmData}}"></firebase-query>
+<firebase-query app-name="growth" id="deviceQuery" path="/device" order-by-child="name" data="{{deviceData}}"></firebase-query>
    <div class="card">
-     <h1 class="data-header">Select Farm</h1>
-      <vaadin-combo-box label="Farm" name="farm" items="[[farmData]]" id="farmSelector" item-label-path="name" item-value-path="name" selected-item='{{selectFarm}}' always-float-label></vaadin-combo-box>       
-   </div>
+     <h1>Select Farm</h1>
+      <vaadin-combo-box label="Farm" name="farm" items="[[farmData]]" id="farmSelector" item-label-path="name" item-value-path="name" selected-item='{{selectFarm}}' focused always-float-label></vaadin-combo-box>       
+      <vaadin-combo-box label="Device Sensor" name="sensor" items="[[deviceData]]" id="sensorSelector" value="[[selectFarm.sensor_name]]" item-label-path="name" item-value-path="name" selected-item='{{sensor}}' required always-float-label ></vaadin-combo-box>
+      <h1>Location</h1>
+      <h2>[[selectFarm.location]], [[selectFarm.district]]</h2>
+      <h1>Plant Type</h1>
+      <h2>[[selectFarm.plant_type]] ([[selectFarm.plant_age]] weeks)</h2>
+  </div>
     <ul class="app-grid">
       <li>
         <div class="card">
@@ -84,8 +90,8 @@
       <div class="card">
         <h1 class="data-header">Temperature Status</h1>
         <div class="data">
-        <img class="soil_emotion" alt="soil_status" src="{{get_emotion(soil_emotion)}}">
-        <h1 class="emotion">[[soil_status]]</h1>
+        <img class="temp_emotion" alt="N/A" src$="[[get_temp_emotion(temp,selectFarm.plant_min_temp, selectFarm.plant_max_temp)]]">
+        <h1 class="emotion">[[temp_status]]</h1>
         </div>
         </div>
         </li>
@@ -93,8 +99,8 @@
            <div class="card">
         <h1 class="data-header">Humidity Status</h1>
         <div class="data">
-        <img class="soil_emotion" alt="soil_status" src="{{get_emotion(soil_emotion)}}">
-        <h1 class="emotion">[[soil_status]]</h1>
+        <img class="humid_emotion" alt="N/A" src$="{{get_humid_emotion(humid)}}">
+        <h1 class="emotion">[[humid_status]]</h1>
         </div>
         </div>
         </li>
@@ -102,7 +108,7 @@
          <div class="card">
         <h1 class="data-header">Soil Status</h1>
         <div class="data">
-        <img class="soil_emotion" alt="soil_status" src="{{get_emotion(soil_emotion)}}">
+        <img class="soil_emotion" alt="N/A" src$="{{get_soil_emotion(soil_emotion)}}">
         <h1 class="emotion">[[soil_status]]</h1>
         </div>
         </div>
@@ -139,11 +145,32 @@
         temp: {
           type: Object
         },
+        deviceData: {
+          type: Object
+        },
         soil: {
           type: Object
         },
         soil_status: {
-          type: String
+          type: String,
+          notify: true,
+          value: (function () {
+            return "N/A";
+          })
+        },
+        temp_status: {
+          type: String,
+          notify: true,
+          value: (function () {
+            return "N/A";
+          })
+        },
+        humid_status: {
+          type: String,
+          notify: true,
+          value: (function () {
+            return "N/A";
+          })
         },
         soil_emotion: {
           type: String,
@@ -154,12 +181,6 @@
         water_time: {
           type: String
         },
-        weather_datetime: {
-          type: String,
-          value: (function() {
-              return "";
-          })
-        },
         farmData: {
           type: Object
         },
@@ -167,12 +188,43 @@
           type: Object
         }
       },
-      get_emotion: function(e) {
+      get_soil_emotion: function(e) {
         if(e != null) {
           return "../../images/status/" + e + ".svg";
         } 
         else {
           return "../../images/status/0.svg";
+        }
+      },
+      get_temp_emotion(temp,min,max) {
+        if(typeof min == 'undefined' && typeof max == 'undefined') return "../../images/status/0.svg";
+        if(min != "" && max != "") {
+          if (temp >= min && temp <= max) {
+            this.temp_status = "Normal";
+            return "../../images/status/" + 4 + ".svg";
+          }
+          else {
+            this.temp_status = "Not suitable";
+            return "../../images/status/" + 6 + ".svg";
+          }
+        }
+        else {
+          this.temp_status = "N/A";
+          return "../../images/status/0.svg";
+        }
+      },
+      get_humid_emotion(humid) {
+        if(humid >= 40 && humid <= 70) {
+           this.humid_status = "Optimal";
+           return "../../images/status/" + 4 + ".svg";
+        } 
+        else if(humid < 40 && humid > 0) {
+           this.humid_status = "Dry";
+           return "../../images/status/" + 2 + ".svg";
+        }
+        else if(humid > 70 && humid < 100) {
+           this.humid_status = "Moist"
+            return "../../images/status/" + 7 + ".svg";
         }
       },
       updatePlantAge: function () {
@@ -236,7 +288,6 @@
         let et = (current_eto*current_kc).toFixed(2);
         return et;
       }
-
     });
   </script>
 </dom-module>
