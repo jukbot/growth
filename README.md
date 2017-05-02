@@ -1,12 +1,12 @@
-# Project Introduction
+# Problem Statement
 
-A manufacturing execution system (MES) involves using computers to track and record the entire manufacturing process from extracting raw materials to producing finished products. They mainly function as stand-alone systems that primarily collects data about the workplace. MES can be used in a wide variety of industries including packing goods, metal or plastic production, and automation.  The main purpose for using MES is to improve production, minimize delays, and make delivery of goods easier. 
- 
- 
-A “Smart” MES builds on top of the original idea of MES by using mathematical algorithms that allow decision making. Henceforth, the information system will  be able to select the most suitable solution in a problem scenario. By employing a Smart MES system with improved decision making, it can further enhance the performance of manufacturing and drive down production costs.
+In the present, without well-managed watering system can cause many problems during watering plants in agricultural, for example, unsuitable amount of water due to types of plant, temperature, and moisture in the air. Thus, people sometimes waste water more or less than it should be, and the quality of product might not be good enough for the market.   
 
 
-While a majority of Thailand still utilizes Industry 2.0, it still lacks the support for the manufacturing systems that can reduce errors in the workflow and allows business to work smarter. The problem can be seen when small to medium businesses are not able to invest in high-technology systems or hire adequate personnel to manage production, they will be stuck with the current standards. This is known as the Industry 2.0 “trap”. It is one of the driving forces that this project was put forth. Smart MES technology can provide an affordable solution to factory owners and advance the standards for industry into the future. Chapter 2 will cover the feasibility study for the Smart MES project.
+# Background
+
+Inefficient watering plant management may lead to an excessive or insufficient in using water. Getting unsuitable amount of water will also make less productivity of plant. Therefore, we need an efficient watering management system in order to know the suitable amount of water for specific types of plant due to various weather conditions.
+
 
 
 ## Build Status
