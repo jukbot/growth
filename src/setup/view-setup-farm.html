@@ -53,7 +53,7 @@
     <firebase-query app-name="growth" id="locationQuery" path="/location/th" order-by-child="name" data="{{locationData}}"></firebase-query>
     <firebase-query app-name="growth" id="districtQuery" path="/location/th/{{province.$key}}/district" order-by-child="name" data="{{districtData}}"></firebase-query>
     <firebase-query app-name="growth" id="plantQuery" path="/plant" order-by-child="name" data="{{plantData}}"></firebase-query>
-    <firebase-query app-name="growth" id="districtQuery" path="/plant/{{plant.$key}}/kc" data="{{weekData}}"></firebase-query>
+    <firebase-query app-name="growth" id="districtQuery" path="/plant/{{selectPlant.$key}}/kc" data="{{weekData}}"></firebase-query>
     <firebase-query app-name="growth" id="deviceQuery" path="/device" order-by-child="name" data="{{deviceData}}"></firebase-query>
     <firebase-query app-name="growth" id="farmQuery" path="/farm" order-by-child="name"  data="{{farmData}}"></firebase-query>
     <firebase-query app-name="growth" id="waterQuery" path="/water" data="{{waterData}}"></firebase-query>
@@ -72,15 +72,15 @@
             <paper-input label="Area square meter" name="area" id="farmArea" type="number" min="0" max="1000" step="1" allowed-pattern="[0-9]"  equired always-float-label auto-validate></paper-input>
             <vaadin-combo-box label="Province" name="province" items="[[locationData]]" id="locationSelector" item-label-path="name" item-value-path="name" selected-item='{{province}}' required always-float-label></vaadin-combo-box>
             <vaadin-combo-box label="District" name="district" items="[[districtData]]" id="districtSelector" disabled="true" item-label-path="name" item-value-path="name" selected-item='{{district}}' required always-float-label></vaadin-combo-box>
-            <vaadin-combo-box label="Plant" name="plant" items="[[plantData]]" id="plantSelector" item-label-path="name" item-value-path="name" selected-item='{{plant}}' required always-float-label></vaadin-combo-box>
+            <vaadin-combo-box label="Plant" name="plant" items="[[plantData]]" id="plantSelector" item-label-path="name" item-value-path="name" selected-item='{{selectPlant}}' required always-float-label></vaadin-combo-box>
             <vaadin-combo-box label="Age (weeks)" name="age" items="[[weekData]]" id="ageSelector" disabled="true" item-label-path="$key" item-value-path="$key" selected-item='{{age}}' required always-float-label></vaadin-combo-box>                      
             <vaadin-combo-box label="Device Sensor" name="sensor" items="[[deviceData]]" id="sensorSelector" item-label-path="name" item-value-path="name" selected-item='{{sensor}}' required always-float-label ></vaadin-combo-box>
             <paper-input name="water-time" id="waterTime" label="Water Time (xx:xx)" required always-float-label></paper-input>           
             <input type="text" id="sensorType" value="[[sensor.type]]" name="sensor-type" hidden="true"/>
-            <input type="text" id="plantKC" value="[[plant.kc]]" name="plant-kc" hidden="true"/>
+            <input type="text" id="plantKC" value="[[selectPlant.kc]]" name="plant-kc" hidden="true"/>
             <input type="text" id="locationETO" value="[[district.eto.2011]]" name="location-eto" hidden="true"/>
             <div class="buttons">
-                <paper-button on-tap="dismissAddMachine" dialog-dismiss>{{localize('dismiss')}}</paper-button>
+                <paper-button dialog-dismiss>{{localize('dismiss')}}</paper-button>
                 <paper-button on-tap="addFarm" dialog-confirm autofocus>{{localize('create')}}</paper-button>
               </div>
             </paper-dialog>
@@ -96,8 +96,8 @@
             <p>Sensor name: [[farmItem.sensor_name]]</p>
             <p>Sensor type: [[farmItem.sensor_type]]</p>
             <p>Watering time: [[farmItem.water]]</p>
-            <p>Plant type: [[farmItem.plant_type]] Weeks</p>
-            <p>Plant age: [[farmItem.plant_age]]</p>
+            <p>Plant type: [[farmItem.plant_type]]</p>
+            <p>Plant age: [[farmItem.plant_age]] (weeks)</p>
             <p>Watering amount: [[getKC(farmItem.plant_age,farmItem.eto,farmItem.kc,farmItem.timestamp)]] mm./day</p>
             </div>
             <div class="button-group">
@@ -105,16 +105,16 @@
             <paper-button raised class="chilli" farm="[[farmItem]]" on-tap="removeFarm">{{localize('remove')}}</paper-button>
             </div>
             <paper-dialog id="edit_[[farmItem.$key]]" class="farm-dialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation" always-on-top no-cancel-on-outside-click>
-            <paper-input name="farm-name" value="{{farmItem.name}}" id="farmName_[[farmItem.$key]]" label="Farm Name" required always-float-label></paper-input>
-            <paper-input name="area" value="{{farmItem.area}}" id="farmArea_[[farmItem.$key]]" label="Area square meter" type="number" min="0" max="1000" step="1" allowed-pattern="[0-9]"  equired always-float-label auto-validate></paper-input>
-            <vaadin-combo-box label="Province" name="province" value="{{farmItem.location}}" items="[[locationData]]" id="locationSelector_[[farmItem.$key]]" item-label-path="name" item-value-path="name" selected-item='{{province}}' required always-float-label></vaadin-combo-box>
-            <vaadin-combo-box label="District" name="district" value="{{farmItem.district}}" items="[[districtData]]" id="districtSelector_[[farmItem.$key]]" disabled="true" item-label-path="name" item-value-path="name" selected-item='{{district}}' required always-float-label></vaadin-combo-box>
-            <vaadin-combo-box label="Plant" name="plant" value="{{farmItem.plant_type}}" items="[[plantData]]" id="plantSelector_[[farmItem.$key]]" item-label-path="name" item-value-path="name" selected-item='{{plant}}' required always-float-label></vaadin-combo-box>
-            <vaadin-combo-box label="Age (weeks)" name="age" value="{{farmItem.plant_age}}" items="[[weekData]]" id="ageSelector_[[farmItem.$key]]"item-label-path="$key" item-value-path="$key" selected-item='{{age}}' required always-float-label></vaadin-combo-box>                      
-            <vaadin-combo-box label="Device Sensor" name="sensor" value="{{farmItem.sensor_name}}" items="[[deviceData]]" id="sensorSelector_[[farmItem.$key]]" item-label-path="name" item-value-path="name" selected-item='{{sensor}}' required always-float-label ></vaadin-combo-box>
-            <paper-input name="water-time" id="waterTime_[[farmItem.$key]]" value="{{farmItem.water}}" label="Water Time (xx:xx)" required always-float-label></paper-input>           
+            <paper-input name="farm-name" value="[[farmItem.name]]" id="farmName_[[farmItem.$key]]" label="Farm Name" required always-float-label></paper-input>
+            <paper-input name="area" value="[[farmItem.area]]" id="farmArea_[[farmItem.$key]]" label="Area square meter" type="number" min="0" max="1000" step="1" allowed-pattern="[0-9]"  equired always-float-label auto-validate></paper-input>
+            <vaadin-combo-box label="Province" name="province" value="[[farmItem.location]]" items="[[locationData]]" id="locationSelector_[[farmItem.$key]]" item-label-path="name" item-value-path="name" selected-item='{{province}}' required always-float-label></vaadin-combo-box>
+            <vaadin-combo-box label="District" name="district" value="[[farmItem.district]]" items="[[districtData]]" id="districtSelector_[[farmItem.$key]]" disabled="true" item-label-path="name" item-value-path="name" selected-item='{{district}}' required always-float-label></vaadin-combo-box>
+            <vaadin-combo-box label="Plant" name="plant" value="[[farmItem.plant_type]]" items="[[plantData]]" id="plantSelector_[[farmItem.$key]]" item-label-path="name" item-value-path="name" required always-float-label></vaadin-combo-box>
+            <vaadin-combo-box label="Age (weeks)" name="age" value="[[farmItem.plant_age]]" items="[[weekData]]" id="ageSelector_[[farmItem.$key]]"item-label-path="$key" item-value-path="$key" selected-item='{{age}}' required always-float-label></vaadin-combo-box>                      
+            <vaadin-combo-box label="Device Sensor" name="sensor" value="[[farmItem.sensor_name]]" items="[[deviceData]]" id="sensorSelector_[[farmItem.$key]]" item-label-path="name" item-value-path="name" selected-item='{{sensor}}' required always-float-label ></vaadin-combo-box>
+            <paper-input name="water-time" id="waterTime_[[farmItem.$key]]" value="[[farmItem.water]]" label="Water Time (xx:xx)" required always-float-label></paper-input>           
             <input type="text" id="sensorType_[[farmItem.$key]]" value="[[sensor.type]]" name="sensor-type" hidden="true"/>
-            <input type="text" id="plantKC_[[farmItem.$key]]" value="[[plant.kc]]" name="plant-kc" hidden="true"/>
+            <input type="text" id="plantKC_[[farmItem.$key]]" value="[[selectPlant.kc]]" name="plant-kc" hidden="true"/>
             <input type="text" id="locationETO_[[farmItem.$key]]" value="[[district.eto.2011]]" name="location-eto" hidden="true"/>
             <div class="buttons">
                 <paper-button on-tap="saveEditFarm" farm="[[farmItem]]" dialog-confirm autofocus>{{localize('close')}}</paper-button>
@@ -169,6 +169,18 @@
         },
         waterData: {
           type: Object
+        },
+        selectPlant: {
+          type: Object,
+        },
+        plantMinTemp: {
+          type: Number
+        },
+        plantMaxTemp: {
+          type: Number
+        },
+        plantRecomTemp: {
+          type: Number
         }
       },
       behaviors: [
@@ -230,6 +242,9 @@ if(fname != "" && farea != "" && sname != "" && plant != "" &&  age != "" && loc
           sensor_type : stype,
           plant_type : plant,
           plant_age : age,
+          plant_max_temp : this.selectPlant.temp.max,
+          plant_min_temp : this.selectPlant.temp.min,
+          plant_recom_temp : this.selectPlant.temp.recommended,
           location : location,
           district : district,
           water : water_time,
@@ -238,8 +253,7 @@ if(fname != "" && farea != "" && sname != "" && plant != "" &&  age != "" && loc
           et : 0,
           timestamp : Math.round(new Date().getTime()/1000.0) 
         });
-      
-        this.clearField();
+          this.clearField();
           if(this.notification) {
            this.$.toastAddFarm.open(); 
          }
@@ -289,16 +303,25 @@ if(fname != "" && farea != "" && sname != "" && plant != "" &&  age != "" && loc
         this.$.locationETO.value = null;
       },
 
-      getKC(age,eto,kc,timestamp,key) {
-        let week = age;
+      getKC(age,eto,kc,timestamp) {
+        let week;
+        let current = Math.floor(Date.now() / 1000);
         let d = new Date();
         let m = d.getMonth()+1; // Jan start from 0
         let eto_arr = eto.split(",");
         let kc_arr = kc.split(",");
         let current_eto = eto_arr[m];
+        let diff = current - timestamp;
+
+        let temp = Math.ceil(diff/604800);
+      
+        if(temp <= 1) {
+             week = Number(age);
+        } else {
+            week = Number(age) + temp;
+        }
         let current_kc = kc_arr[week];
         let et = (current_eto*current_kc).toFixed(2);
-      
         return et;
       }
     });

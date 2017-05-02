@@ -54,8 +54,11 @@
 <firebase-document app-name="growth" id="soilQuery" path="/soil" data="{{soil}}"></firebase-document>
 <firebase-document app-name="growth" id="soilStatusQuery" path="/soil_status" data="{{soil_status}}"></firebase-document>
 <firebase-document app-name="growth" id="soilEmotionQuery" path="/soil_emotion" data="{{soil_emotion}}"></firebase-document>
-<firebase-document app-name="growth" id="farmQuery" path="/farm/-KibMoVqbif9LUveY-Fr" order-by-child="name" data="{{farmData}}"></firebase-document>
-   
+<firebase-query app-name="growth" id="farmQuery" path="/farm" order-by-child="name" data="{{farmData}}"></firebase-query>
+   <div class="card">
+     <h1 class="data-header">Select Farm</h1>
+      <vaadin-combo-box label="Farm" name="farm" items="[[farmData]]" id="farmSelector" item-label-path="name" item-value-path="name" selected-item='{{selectFarm}}' always-float-label></vaadin-combo-box>       
+   </div>
     <ul class="app-grid">
       <li>
         <div class="card">
@@ -75,31 +78,53 @@
           <h1 class="data">[[soil]] %</h1>
           </div>
       </li>
-    </ul>
+    </ul>    
+    <ul class="app-grid">
+      <li>
       <div class="card">
-        <h1 class="data-header">Soil Health Status</h1>
+        <h1 class="data-header">Temperature Status</h1>
         <div class="data">
         <img class="soil_emotion" alt="soil_status" src="{{get_emotion(soil_emotion)}}">
         <h1 class="emotion">[[soil_status]]</h1>
         </div>
         </div>
+        </li>
+      <li>
+           <div class="card">
+        <h1 class="data-header">Humidity Status</h1>
+        <div class="data">
+        <img class="soil_emotion" alt="soil_status" src="{{get_emotion(soil_emotion)}}">
+        <h1 class="emotion">[[soil_status]]</h1>
+        </div>
+        </div>
+        </li>
+      <li>
+         <div class="card">
+        <h1 class="data-header">Soil Status</h1>
+        <div class="data">
+        <img class="soil_emotion" alt="soil_status" src="{{get_emotion(soil_emotion)}}">
+        <h1 class="emotion">[[soil_status]]</h1>
+        </div>
+        </div>
+     </li>
+    </ul>     
  <ul class="app-grid">
       <li>
         <div class="card">
           <h1 class="data-header">Crop Evapotranspiration</h1>
-         <h1 class="data">[[getKC(farmData.plant_age,farmData.eto,farmData.kc,farmData.timestamp)]] mm.</h1>
+         <h1 class="data">[[getKC(selectFarm.plant_age,selectFarm.eto,selectFarm.kc,selectFarm.timestamp)]] mm.</h1>
         </div>
       </li>
       <li>
         <div class="card">
           <h1 class="data-header">Today Watering</h1>
-          <h1 class="data">[[calcurrentET(soil,farmData.plant_age,farmData.eto,farmData.kc,farmData.timestamp)]] mm.</h1>
+          <h1 class="data">[[calcurrentET(soil,selectFarm.plant_age,selectFarm.eto,selectFarm.kc,selectFarm.timestamp)]] mm.</h1>
         </div>
       </li>
       <li>
         <div class="card">
           <h1 class="data-header">Next Watering</h1>
-          <h1 class="data">[[farmData.water]]</h1>
+          <h1 class="data">[[selectFarm.water]]</h1>
           </div>
       </li>
     </ul>
@@ -121,18 +146,24 @@
           type: String
         },
         soil_emotion: {
-          type: String
+          type: String,
+          value: (function () {
+            return "0";
+          })
         },
         water_time: {
           type: String
         },
         weather_datetime: {
           type: String,
-          value: function() {
+          value: (function() {
               return "";
-          }
+          })
         },
         farmData: {
+          type: Object
+        },
+        selectFarm: {
           type: Object
         }
       },
@@ -141,7 +172,7 @@
           return "../../images/status/" + e + ".svg";
         } 
         else {
-          return "../../images/status/normal.svg";
+          return "../../images/status/0.svg";
         }
       },
       updatePlantAge: function () {
@@ -153,13 +184,21 @@
               this.set('farmData.plant_age', week);
         }
       },
-      calcurrentET: function(s,age,eto,kc,timestamp,key) {
-        let week = age;
+      calcurrentET(soil,age,eto,kc,timestamp) {
+        let week;
+        let current = Math.floor(Date.now() / 1000);
         let d = new Date();
         let m = d.getMonth()+1; // Jan start from 0
         let eto_arr = eto.split(",");
         let kc_arr = kc.split(",");
         let current_eto = eto_arr[m];
+        let diff = current - timestamp;
+        let temp = Math.ceil(diff/604800);
+         if(temp <= 1) {
+             week = Number(age);
+        } else {
+            week = Number(age) + temp;
+        }
         let current_kc = kc_arr[week];
         let et = (current_eto*current_kc).toFixed(2);
 
@@ -176,13 +215,23 @@
         }
       },
 
-      getKC(age,eto,kc,timestamp,key) {
-        let week = age;
+     getKC(age,eto,kc,timestamp) {
+        let week;
+        let current = Math.floor(Date.now() / 1000);
         let d = new Date();
         let m = d.getMonth()+1; // Jan start from 0
         let eto_arr = eto.split(",");
         let kc_arr = kc.split(",");
         let current_eto = eto_arr[m];
+        let diff = current - timestamp;
+
+        let temp = Math.ceil(diff/604800);
+      
+        if(temp <= 1) {
+             week = Number(age);
+        } else {
+            week = Number(age) + temp;
+        }
         let current_kc = kc_arr[week];
         let et = (current_eto*current_kc).toFixed(2);
         return et;
