@@ -124,7 +124,7 @@
       <li>
         <div class="card">
           <h1 class="data-header">Today Watering</h1>
-          <h1 class="data">[[calcurrentET(soil,selectFarm.plant_age,selectFarm.eto,selectFarm.kc,selectFarm.timestamp)]] mm.</h1>
+          <h1 class="data">[[calcurrentET(soil,humid,selectFarm.plant_age,selectFarm.eto,selectFarm.kc,selectFarm.timestamp)]] mm.</h1>
         </div>
       </li>
       <li>
@@ -215,7 +215,7 @@
       },
       get_humid_emotion(humid) {
         if(humid >= 40 && humid <= 70) {
-           this.humid_status = "Optimal";
+           this.humid_status = "Normal";
            return "../../images/status/" + 4 + ".svg";
         } 
         else if(humid < 40 && humid > 0) {
@@ -236,7 +236,7 @@
               this.set('farmData.plant_age', week);
         }
       },
-      calcurrentET(soil,age,eto,kc,timestamp) {
+      calcurrentET(soil,humid,age,eto,kc,timestamp) {
         let week;
         let current = Math.floor(Date.now() / 1000);
         let d = new Date();
@@ -254,16 +254,25 @@
         let current_kc = kc_arr[week];
         let et = (current_eto*current_kc).toFixed(2);
 
-        if (typeof Object.keys(this.soil) !== 'undefined') {
-          if(this.soil > 60) {
+        if (typeof Object.keys(this.soil) !== 'undefined' && typeof Object.keys(this.humid) !== 'undefined') {
+          if(this.humid > 80 && this.humid <= 100) {
             return 0;
-          } else if(this.soil >= 50 && this.soil <= 60) {
-             return (0.5*et).toFixed(2);
-          } else if(this.soil >= 40 && this.soil < 50) {
-             return (0.75*et).toFixed(2);
-          } else if (this.soil < 40) {
-             return et;
           }
+          else if(this.humid <= 80 && this.humid >= 30) {
+              if(this.soil > 60) {
+                return 0;
+              } else if(this.soil >= 50 && this.soil <= 60) {
+                return (0.25*et).toFixed(2);
+              } else if(this.soil >= 40 && this.soil < 50) {
+                return (0.50*et).toFixed(2);
+              } else if(this.soil >= 30 && this.soil < 40) {
+                return (0.75*et).toFixed(2);
+              } else if (this.soil < 30) {
+                return et;
+              }
+          } else if(this.humid < 30) {
+              return et;
+          } 
         }
       },
 
