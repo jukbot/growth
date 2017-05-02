@@ -1,6 +1,6 @@
 {
   "name": "polymerfire",
-  "version": "0.11.1",
+  "version": "0.11.2",
   "authors": [
     "Firebase"
   ],
@@ -26,13 +26,13 @@
     "iron-component-page": "PolymerElements/iron-component-page#^1.0",
     "web-component-tester": "^4.0.0"
   },
-  "_release": "0.11.1",
+  "_release": "0.11.2",
   "_resolution": {
     "type": "version",
-    "tag": "v0.11.1",
-    "commit": "8349a347635b5cff320351a4254a0a90073ebfa1"
+    "tag": "v0.11.2",
+    "commit": "26da261b03e72626277175a4d59a643a272e6b18"
   },
   "_source": "https://github.com/firebase/polymerfire.git",
-  "_target": "^0.11.1",
+  "_target": "^0.11.2",
   "_originalSource": "polymerfire"
 }
